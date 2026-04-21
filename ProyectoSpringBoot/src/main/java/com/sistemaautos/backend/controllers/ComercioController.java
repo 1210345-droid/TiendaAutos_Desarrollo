@@ -18,10 +18,24 @@ public class ComercioController {
     @Autowired
     private JdbcTemplate jdbcTemplate;
 
+    private List<Map<String, Object>> normalizeKeys(List<Map<String, Object>> list) {
+        List<Map<String, Object>> result = new ArrayList<>();
+        for (Map<String, Object> map : list) {
+            Map<String, Object> newMap = new HashMap<>();
+            for (Map.Entry<String, Object> entry : map.entrySet()) {
+                String key = entry.getKey().toLowerCase();
+                if (key.equals("precioventa")) key = "precioVenta"; // Preserve frontend camelCase expectations
+                newMap.put(key, entry.getValue());
+            }
+            result.add(newMap);
+        }
+        return result;
+    }
+
     // ================= CLIENTES =================
     @GetMapping("/clientes")
     public List<Map<String, Object>> getClientes() {
-        return jdbcTemplate.queryForList("SELECT id_cliente as id, nombre, apellido, telefono FROM clientes");
+        return normalizeKeys(jdbcTemplate.queryForList("SELECT id_cliente as id, nombre, apellido, telefono FROM clientes"));
     }
 
     @PostMapping("/clientes")
@@ -33,23 +47,26 @@ public class ComercioController {
         return res;
     }
 
+    @Transactional
     @DeleteMapping("/clientes/{id}")
     public Map<String, Object> delCliente(@PathVariable int id) {
+        jdbcTemplate.update("DELETE FROM usuarios_login WHERE id_cliente = ?", id);
+        jdbcTemplate.update("DELETE FROM detalle_orden WHERE id_orden IN (SELECT id_orden FROM orden_venta WHERE id_cliente = ?)", id);
+        jdbcTemplate.update("DELETE FROM orden_venta WHERE id_cliente = ?", id);
+        jdbcTemplate.update("UPDATE productos SET id_vendedor = NULL WHERE id_vendedor = ?", id);
         jdbcTemplate.update("DELETE FROM clientes WHERE id_cliente = ?", id);
-        Map<String, Object> res = new HashMap<>();
-        res.put("success", true);
-        return res;
+        Map<String, Object> res = new HashMap<>(); res.put("success", true); return res;
     }
 
     // ================= MARCAS Y PROVS =================
     @GetMapping("/marcas")
     public List<Map<String, Object>> getMarcas() {
-        return jdbcTemplate.queryForList("SELECT id_marca as id, descripcion as nombre FROM marca");
+        return normalizeKeys(jdbcTemplate.queryForList("SELECT id_marca as id, descripcion as nombre FROM marca"));
     }
 
     @GetMapping("/proveedores")
     public List<Map<String, Object>> getProveedores() {
-        return jdbcTemplate.queryForList("SELECT id_proveedor as id, nombre FROM proveedores");
+        return normalizeKeys(jdbcTemplate.queryForList("SELECT id_proveedor as id, nombre FROM proveedores"));
     }
 
     // ================= PRODUCTOS =================
@@ -61,7 +78,7 @@ public class ComercioController {
                        "FROM productos p LEFT JOIN marca m ON p.id_marca = m.id_marca " +
                        "LEFT JOIN proveedores pr ON p.id_proveedor = pr.id_proveedor " +
                        "LEFT JOIN clientes c ON p.id_vendedor = c.id_cliente ORDER BY p.id_producto DESC";
-        return jdbcTemplate.queryForList(query);
+        return normalizeKeys(jdbcTemplate.queryForList(query));
     }
 
     @PostMapping("/productos")
@@ -134,8 +151,10 @@ public class ComercioController {
         Map<String, Object> res = new HashMap<>(); res.put("success", true); return res;
     }
 
+    @Transactional
     @DeleteMapping("/productos/{id}")
     public Map<String, Object> delProducto(@PathVariable int id) {
+        jdbcTemplate.update("DELETE FROM detalle_orden WHERE id_producto = ?", id);
         jdbcTemplate.update("DELETE FROM productos WHERE id_producto = ?", id);
         Map<String, Object> res = new HashMap<>(); res.put("success", true); return res;
     }

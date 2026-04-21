@@ -9,13 +9,13 @@
         @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap');
 
         :root {
-            --bg-grad: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
-            --glass-bg: rgba(255, 255, 255, 0.05);
-            --glass-border: rgba(255, 255, 255, 0.1);
+            --bg-grad: linear-gradient(135deg, #020617 0%, #0f172a 100%);
+            --glass-bg: rgba(255, 255, 255, 0.03);
+            --glass-border: rgba(255, 255, 255, 0.08);
             --text-main: #f8fafc;
-            --text-muted: #cbd5e1;
-            --accent: #3b82f6;
-            --accent-hover: #2563eb;
+            --text-muted: #94a3b8;
+            --accent: #38bdf8;
+            --accent-hover: #0284c7;
             --danger: #ef4444;
             --danger-hover: #dc2626;
             --success: #10b981;
@@ -27,6 +27,7 @@
             margin: 0;
             padding: 0;
             background: var(--bg-grad) !important;
+            background-attachment: fixed !important;
             min-height: 100vh;
             color: var(--text-main);
         }
@@ -47,9 +48,9 @@
             padding: 40px;
             margin-top: 10vh;
             border-radius: 16px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
             border: 1px solid var(--glass-border);
-            backdrop-filter: blur(12px);
+            backdrop-filter: blur(16px);
             max-width: 400px;
             margin-left: auto;
             margin-right: auto;
@@ -136,8 +137,8 @@
 
         /* NAVBAR AND DASHBOARD */
         .navbar {
-            background: rgba(0, 0, 0, 0.3);
-            backdrop-filter: blur(10px);
+            background: rgba(2, 6, 23, 0.6);
+            backdrop-filter: blur(16px);
             padding: 15px 30px;
             display: flex;
             justify-content: space-between;
@@ -179,6 +180,40 @@
             border-bottom: 1px solid var(--glass-border);
             padding-bottom: 15px;
             margin-bottom: 25px;
+        }
+
+        /* DASHBOARD STATS */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .stat-card {
+            background: linear-gradient(135deg, rgba(255,255,255,0.05), rgba(255,255,255,0.01));
+            border: 1px solid var(--glass-border);
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            transition: transform 0.3s;
+        }
+        .stat-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--accent);
+        }
+        .stat-card h4 {
+            margin: 0;
+            font-size: 14px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .stat-card .value {
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--accent);
+            margin-top: 10px;
         }
 
         /* TABLES & FORMS */
@@ -446,6 +481,58 @@
             text-align: center;
         }
 
+        /* TOAST NOTIFICATION */
+        #toast-container {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .toast {
+            min-width: 250px;
+            background: rgba(15, 23, 42, 0.9);
+            color: white;
+            padding: 15px 20px;
+            border-radius: 8px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            border-left: 5px solid var(--accent);
+            backdrop-filter: blur(10px);
+            font-family: 'Outfit';
+            font-size: 14px;
+            animation: slideInRight 0.3s ease-out forwards;
+            opacity: 0;
+            transform: translateX(100%);
+        }
+        .toast.success { border-color: var(--success); }
+        .toast.error { border-color: var(--danger); }
+        .toast.fade-out { animation: fadeOutRight 0.4s ease-in forwards; }
+
+        @keyframes slideInRight {
+            to { opacity: 1; transform: translateX(0); }
+        }
+        @keyframes fadeOutRight {
+            to { opacity: 0; transform: translateX(100%); }
+        }
+
+        /* EXPORT BUTTON */
+        .btn-export {
+            background: #475569;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            float: right;
+            transition: background 0.3s;
+        }
+        .btn-export:hover {
+            background: #64748b;
+        }
+
         /* MOBILE RESPONSIVE CSS */
         @media(max-width: 768px) {
             .navbar { flex-direction: column; gap: 10px; align-items: stretch; }
@@ -596,14 +683,17 @@
         <div class="container dashboard">
             <!-- SECCION CLIENTES -->
             <div id="seccionClientes">
-                <h2>Gestión de Clientes</h2>
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <h2>Gestión de Clientes</h2>
+                    <button class="btn-export" onclick="exportData('tablaClientesHtml', 'Clientes.csv')">📊 Exportar a Excel (CSV)</button>
+                </div>
                 <div class="form-group">
                     <input type="text" id="cliNombre" placeholder="Nombre">
                     <input type="text" id="cliApellido" placeholder="Apellido">
                     <input type="text" id="cliTelefono" placeholder="Teléfono">
                     <button class="btn-success" onclick="agregarCliente()">+ Agregar Cliente</button>
                 </div>
-                <table>
+                <table id="tablaClientesHtml">
                     <thead>
                         <tr>
                             <th>ID</th>
@@ -619,8 +709,28 @@
 
             <!-- SECCION LOGISTICA (ADMIN) -->
             <div id="seccionLogistica" class="hidden">
-                <h2>Control de Logística y Envíos Totales</h2>
-                <table>
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <h2>Control de Logística y Envíos Totales</h2>
+                    <button class="btn-export" onclick="exportData('tablaLogisticaHtml', 'Logistica.csv')">📊 Exportar a Excel (CSV)</button>
+                </div>
+                
+                <!-- TOP ADMIN DASHBOARD -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <h4>Total Órdenes</h4>
+                        <div class="value" id="statOrdenes">--</div>
+                    </div>
+                    <div class="stat-card">
+                        <h4>Ingresos Totales</h4>
+                        <div class="value" style="color:var(--success);" id="statVentas">$--</div>
+                    </div>
+                    <div class="stat-card">
+                        <h4>En Tránsito</h4>
+                        <div class="value" style="color:#f59e0b;" id="statTransito">--</div>
+                    </div>
+                </div>
+
+                <table id="tablaLogisticaHtml">
                     <thead>
                         <tr>
                             <th>ID Orden</th>
@@ -816,6 +926,10 @@
                 al Catálogo</button>
         </div>
     </div>
+
+    <!-- TOAST CONTAINER -->
+    <div id="toast-container"></div>
+
     <!-- SCRIPTS -->
     <script>
         const globalOrigin = window.location.origin;
@@ -850,6 +964,19 @@
             }
         }
 
+        function mostrarToast(mensaje, tipo = "success") {
+            const container = document.getElementById("toast-container");
+            const toast = document.createElement("div");
+            toast.className = `toast ${tipo}`;
+            toast.innerText = mensaje;
+            container.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.classList.add("fade-out");
+                setTimeout(() => toast.remove(), 400); // Remove after fade out
+            }, 3000);
+        }
+
         async function register() {
             const username = document.getElementById("username").value;
             const password = document.getElementById("password").value;
@@ -876,9 +1003,9 @@
                 const data = !!res.headers.get("content-type")?.includes("json") ? await res.json() : null;
 
                 if (res.ok) {
-                    alert("Usuario creado con éxito. Ahora puedes Iniciar Sesión.");
+                    mostrarToast("Usuario creado. Ahora inicia sesión.", "success");
                     document.getElementById("password").value = "";
-                    toggleRegister(); // Regresa a pantalla de Login
+                    toggleRegister();
                 } else {
                     errorDiv.innerText = (data && data.message) ? data.message : "Error al crear usuario.";
                     errorDiv.classList.remove("hidden");
@@ -1068,13 +1195,20 @@
                 const res = await fetch(`${API_URL}/admin/ordenes?t=${new Date().getTime()}`);
                 const data = await res.json();
                 let html = "";
+                let sumTotal = 0;
+                let sumTransito = 0;
+                
                 data.forEach(o => {
                     let d = new Date(o.fecha_orden).toLocaleString();
+                    let t = parseFloat(o.total_orden);
+                    sumTotal += t;
+                    if(o.status_orden !== 'Pedido Entregado' && o.status_orden !== 'Cancelado') sumTransito++;
+
                     html += `<tr>
                         <td>#${o.id_orden}</td>
                         <td>${o.nombre || '-'} ${o.apellido || ''}</td>
                         <td>${d}</td>
-                        <td style="color:var(--success); font-weight:bold;">$${parseFloat(o.total_orden).toFixed(2)}</td>
+                        <td style="color:var(--success); font-weight:bold;">$${t.toFixed(2)}</td>
                         <td>
                             <select id="status_${o.id_orden}" style="padding:5px; border-radius:5px; background:#1e293b; color:var(--text-main); border:1px solid var(--accent); margin-right:10px;">
                                 <option value="Procesando Pago" ${o.status_orden==='Procesando Pago'?'selected':''}>Procesando Pago</option>
@@ -1089,7 +1223,15 @@
                         </td>
                     </tr>`;
                 });
+                
                 document.getElementById("tablaLogistica").innerHTML = html;
+                
+                // Actualizar Dashboard Top
+                if(document.getElementById("statOrdenes")) {
+                    document.getElementById("statOrdenes").innerText = data.length;
+                    document.getElementById("statVentas").innerText = "$" + sumTotal.toFixed(2);
+                    document.getElementById("statTransito").innerText = sumTransito;
+                }
             } catch(e) { console.error(e); }
         }
 
@@ -1102,11 +1244,36 @@
                     body: JSON.stringify({ status: nuevoStatus })
                 });
                 if(res.ok) {
-                    alert("Estado de tracking actualizado. El cliente ya puede verlo.");
+                    mostrarToast("Estado de correo actualizado.", "success");
                 } else {
-                    alert("Error al actualizar la orden.");
+                    mostrarToast("Error al actualizar tracking.", "error");
                 }
             } catch(e) { console.error(e); }
+        }
+
+        // ================= DASHBOARD EXPORT =================
+        function exportData(tableId, filename = '') {
+            let csv = [];
+            let rows = document.querySelectorAll(`#${tableId} tr`);
+            for (let i = 0; i < rows.length; i++) {
+                let cols = rows[i].querySelectorAll("td, th");
+                let rowData = [];
+                for (let j = 0; j < cols.length; j++) {
+                    // Ignore elements that are inputs or buttons inside TD
+                    if(!cols[j].querySelector('button') && !cols[j].querySelector('select')) {
+                        let text = cols[j].innerText.replace(/"/g, '""');
+                        rowData.push('"' + text + '"');
+                    }
+                }
+                if(rowData.length > 0) csv.push(rowData.join(","));
+            }
+            let csvFile = new Blob([csv.join("\n")], {type: "text/csv"});
+            let link = document.createElement("a");
+            link.download = filename;
+            link.href = window.URL.createObjectURL(csvFile);
+            link.style.display = "none";
+            document.body.appendChild(link);
+            link.click();
         }
 
         /* ----- FUNCIONES PARA PRODUCTOS ------ */
@@ -1277,7 +1444,7 @@
                 });
                 
                 if (res.ok) {
-                    alert("¡Tu producto fue publicado con éxito en el Catálogo Global!");
+                    mostrarToast("¡Producto publicado en C2C!", "success");
                     document.getElementById("c2cDesc").value = "";
                     document.getElementById("c2cPrecio").value = "";
                     document.getElementById("c2cDetalles").value = "";
@@ -1285,7 +1452,7 @@
                     cargarProductos();
                     mostrarSeccion('productos');
                 } else {
-                    alert("Error al publicar.");
+                    mostrarToast("Error al publicar.", "error");
                 }
             } catch(e) { console.error(e); }
         }
@@ -1353,15 +1520,16 @@
                 const dataJSON = await res.json();
 
                 if (!res.ok) {
-                    alert("Error en SQL: " + (dataJSON.error || "Desconocido"));
+                    mostrarToast("Error en SQL: " + (dataJSON.error || "Desconocido"), "error");
                     return;
                 }
 
+                mostrarToast("Producto guardado correctamente", "success");
                 cancelarEdicion();
                 cargarProductos();
                 cargarSelects();
             } catch (e) {
-                alert("Error crítico conectando: " + e.message);
+                mostrarToast("Error crítico conectando", "error");
             }
         }
 
