@@ -897,6 +897,37 @@
                 <button class="btn-success" style="width:100%; font-size: 16px;" onclick="confirmarPago()">Confirmar y Pagar</button>
                 <p style="text-align:center; margin-top:10px; font-size:11px; color:#64748b;">🔒 Tus finanzas están encriptadas. No guardamos caducidad ni CVV.</p>
             </div>
+            <!-- SECCION OFERTAS -->
+            <div id="seccionOfertas" class="hidden">
+                <h2>Ofertas Destacadas del Mes ⚡</h2>
+                <div style="background: linear-gradient(135deg, #ea580c 0%, #c2410c 100%); padding:20px; border-radius:12px; margin-bottom:20px; text-align:center;">
+                    <h3 style="margin:0; font-size:24px;">¡HASTA 50% DE DESCUENTO EN FRENOS BREMBO!</h3>
+                    <p style="margin:5px 0 0 0; font-size:14px; opacity:0.9;">Aplica solo en tienda física mostrando el código promocional.</p>
+                </div>
+                <div class="grid" id="ofertasGrid">
+                    <p style="color: #94a3b8; width: 100%; text-align: center;">Las ofertas dinámicas están activadas y listas para la próxima sincronización del ERP.</p>
+                </div>
+            </div>
+
+            <!-- SECCION SOPORTE CLIENTE -->
+            <div id="seccionSoporteCliente" class="hidden">
+                <h2>Soporte Técnico</h2>
+                <div class="card" style="padding: 20px;">
+                    <h3>Levantar Nuevo Ticket</h3>
+                    <input type="text" id="ticketAsunto" placeholder="Asunto del problema...">
+                    <textarea id="ticketMensaje" placeholder="Describe el problema en detalle..." style="width:100%; height:100px; margin-top:10px; background:rgba(0,0,0,0.3); color:white; padding:10px; border-radius:8px; border:1px solid var(--glass-border);"></textarea>
+                    <button class="btn-success" style="margin-top:15px;" onclick="enviarTicket()">Enviar a Soporte</button>
+                    <hr style="border-color:var(--glass-border); margin:20px 0;">
+                    <h3>Mis Tickets</h3>
+                    <div id="misTicketsList">Ningún ticket en curso.</div>
+                </div>
+            </div>
+
+            <!-- SECCION SOPORTE ADMIN -->
+            <div id="seccionSoporteAdmin" class="hidden">
+                <h2>Gestión de Soporte (Admin)</h2>
+                <div id="adminTicketsList">Cargando tickets...</div>
+            </div>
         </div>
     </div>
 
