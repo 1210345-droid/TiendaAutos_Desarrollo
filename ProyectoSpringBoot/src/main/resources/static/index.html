@@ -1310,7 +1310,8 @@
                     body: JSON.stringify({ status: nuevoStatus })
                 });
                 if(res.ok) {
-                    mostrarToast("Estado de correo actualizado.", "success");
+                    mostrarToast("Estado actualizado correctamente.", "success");
+                    cargarLogistica();
                 } else {
                     mostrarToast("Error al actualizar tracking.", "error");
                 }
