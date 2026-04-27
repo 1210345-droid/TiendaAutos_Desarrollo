@@ -18,6 +18,18 @@ public class CheckoutLogisticaController {
     @Autowired
     private JdbcTemplate jdbcTemplate;
 
+    private List<Map<String, Object>> normalizeKeys(List<Map<String, Object>> list) {
+        List<Map<String, Object>> result = new ArrayList<>();
+        for (Map<String, Object> map : list) {
+            Map<String, Object> newMap = new HashMap<>();
+            for (Map.Entry<String, Object> entry : map.entrySet()) {
+                newMap.put(entry.getKey().toLowerCase(), entry.getValue());
+            }
+            result.add(newMap);
+        }
+        return result;
+    }
+
     // ================= CHECKOUT =================
     @Transactional
     @SuppressWarnings("unchecked")
@@ -61,7 +73,7 @@ public class CheckoutLogisticaController {
                    "INNER JOIN productos p ON d.id_producto = p.id_producto " +
                    "WHERE o.id_cliente = ? ORDER BY o.fecha_orden DESC";
         
-        List<Map<String, Object>> rows = jdbcTemplate.queryForList(q, idCliente);
+        List<Map<String, Object>> rows = normalizeKeys(jdbcTemplate.queryForList(q, idCliente));
         Map<Integer, Map<String, Object>> map = new HashMap<>();
 
         for (Map<String, Object> r : rows) {
@@ -86,10 +98,10 @@ public class CheckoutLogisticaController {
 
     @GetMapping("/admin/ordenes")
     public List<Map<String, Object>> getTodasOrdenes() {
-        return jdbcTemplate.queryForList(
+        return normalizeKeys(jdbcTemplate.queryForList(
             "SELECT o.id_orden, o.id_cliente, o.total_orden, o.status_orden, o.fecha_orden, c.nombre, c.apellido " +
             "FROM orden_venta o LEFT JOIN clientes c ON o.id_cliente = c.id_cliente ORDER BY o.fecha_orden DESC"
-        );
+        ));
     }
 
     @PutMapping("/admin/orden_status/{id}")
