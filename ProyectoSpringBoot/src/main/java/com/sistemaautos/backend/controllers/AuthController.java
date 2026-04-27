@@ -23,7 +23,7 @@ public class AuthController {
         String password = body.get("password");
         
         List<Map<String, Object>> result = jdbcTemplate.queryForList(
-            "SELECT id, usuario, rol FROM usuarios_login WHERE usuario = ? AND password = ?", 
+            "SELECT id, usuario, rol FROM usuarios_login WHERE usuario = ? AND clave = ?", 
             username, password
         );
 
@@ -31,7 +31,7 @@ public class AuthController {
         if (!result.isEmpty()) {
             res.put("success", true);
             res.put("message", "Login exitoso");
-            res.put("rol", result.get(0).get("rol"));
+            res.put("rol", result.get(0).getOrDefault("rol", result.get(0).get("ROL")));
         } else {
             res.put("success", false);
             res.put("message", "Credenciales incorrectas");
@@ -60,7 +60,7 @@ public class AuthController {
         jdbcTemplate.update("INSERT INTO clientes (nombre, apellido, telefono) VALUES (?, ?, ?)", nombre, apellido, telefono != null ? telefono : "");
         Integer idCliente = jdbcTemplate.queryForObject("SELECT SCOPE_IDENTITY()", Integer.class);
 
-        jdbcTemplate.update("INSERT INTO usuarios_login (usuario, password, rol, id_cliente) VALUES (?, ?, 'cliente', ?)", username, password, idCliente);
+        jdbcTemplate.update("INSERT INTO usuarios_login (usuario, clave, rol, id_cliente) VALUES (?, ?, 'cliente', ?)", username, password, idCliente);
 
         res.put("success", true);
         res.put("message", "Registro y Perfil atado de cliente fue exitoso");

@@ -1,5 +1,5 @@
 INSERT INTO clientes (nombre, apellido, telefono) VALUES ('El Gran', 'Jefe', '555-ADMIN');
-INSERT INTO usuarios_login (usuario, password, rol, id_cliente) VALUES ('admin', 'admin', 'admin', 1);
+INSERT INTO usuarios_login (usuario, clave, rol, id_cliente) VALUES ('admin', 'admin', 'admin', 1);
 
 INSERT INTO marca (descripcion) VALUES ('Ford'), ('Chevrolet'), ('Nissan');
 INSERT INTO proveedores (nombre) VALUES ('Autozone'), ('Refaccionaria California');

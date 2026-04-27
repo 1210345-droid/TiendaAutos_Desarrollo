@@ -1063,7 +1063,7 @@
                 }
             } catch (err) {
                 console.error(err);
-                alert("Error conectando al backend (¿Está el servidor escuchando en localhost:5000?)");
+                mostrarToast("Error de conexión. ¿Está Spring Boot en 8080?", "error");
             }
         }
 

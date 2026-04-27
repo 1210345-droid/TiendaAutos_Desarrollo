@@ -1,6 +1,6 @@
 #FileLock
-#Mon Apr 20 23:18:51 CST 2026
-hostName=Vicky-L
-id=19dae7a1b0f00008687008f89aae812f703d45122a5
+#Sun Apr 26 20:03:41 CST 2026
+hostName=10.5.25.150
+id=19dccad8c6fae148751a631e1a4c74ab956a6e261d6
 method=file
-server=192.168.0.13\:51383
+server=10.5.25.150\:56987
