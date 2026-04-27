@@ -20,6 +20,7 @@ public class CheckoutLogisticaController {
 
     // ================= CHECKOUT =================
     @Transactional
+    @SuppressWarnings("unchecked")
     @PostMapping("/checkout")
     public Map<String, Object> checkout(@RequestBody Map<String, Object> body) {
         Object idC = body.get("idCliente");
@@ -32,7 +33,7 @@ public class CheckoutLogisticaController {
             total += (p * c);
         }
 
-        jdbcTemplate.update("INSERT INTO orden_venta (id_cliente, fecha_orden, status_orden, total_orden) VALUES (?, GETDATE(), 'Procesando Pago', ?)", 
+        jdbcTemplate.update("INSERT INTO orden_venta (id_cliente, fecha_orden, status_orden, total_orden) VALUES (?, CURRENT_TIMESTAMP, 'Procesando Pago', ?)", 
                             idC, total);
         Integer idOrden = jdbcTemplate.queryForObject("SELECT SCOPE_IDENTITY()", Integer.class);
 
@@ -51,6 +52,7 @@ public class CheckoutLogisticaController {
     }
 
     // ================= HISTORIAL Y TRACKING =================
+    @SuppressWarnings("unchecked")
     @GetMapping("/mis_ordenes/{idCliente}")
     public List<Map<String, Object>> misOrdenes(@PathVariable int idCliente) {
         String q = "SELECT o.id_orden, o.fecha_orden, o.total_orden, o.status_orden, " +

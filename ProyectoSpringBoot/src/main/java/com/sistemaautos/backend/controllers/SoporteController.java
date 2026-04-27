@@ -61,4 +61,11 @@ public class SoporteController {
         res.put("success", true);
         return res;
     }
+
+    @GetMapping("/mis_tickets/{idCliente}")
+    public List<Map<String, Object>> misTickets(@PathVariable int idCliente) {
+        String query = "SELECT t.id_ticket, t.asunto, t.mensaje, t.estado, t.fecha_creacion " +
+                       "FROM soporte_tickets t WHERE t.id_cliente = ? ORDER BY t.id_ticket DESC";
+        return normalizeKeys(jdbcTemplate.queryForList(query, idCliente));
+    }
 }

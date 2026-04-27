@@ -1187,6 +1187,7 @@
                 cargarLogistica();
             } else if (seccion === 'soporteCliente') {
                 document.getElementById("seccionSoporteCliente").classList.remove("hidden");
+                cargarMisTickets();
             } else if (seccion === 'soporteAdmin') {
                 document.getElementById("seccionSoporteAdmin").classList.remove("hidden");
                 cargarSoporteAdmin();
@@ -1263,15 +1264,17 @@
                 
                 data.forEach(o => {
                     let d = new Date(o.fecha_orden).toLocaleString();
-                    let t = parseFloat(o.total_orden);
+                    let t = parseFloat(o.total_orden) || 0;
                     sumTotal += t;
                     if(o.status_orden !== 'Pedido Entregado' && o.status_orden !== 'Cancelado') sumTransito++;
+
+                    let money = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(t);
 
                     html += `<tr>
                         <td>#${o.id_orden}</td>
                         <td>${o.nombre || '-'} ${o.apellido || ''}</td>
                         <td>${d}</td>
-                        <td style="color:var(--success); font-weight:bold;">$${t.toFixed(2)}</td>
+                        <td style="color:var(--success); font-weight:bold;">${money}</td>
                         <td>
                             <select id="status_${o.id_orden}" style="padding:5px; border-radius:5px; background:#1e293b; color:var(--text-main); border:1px solid var(--accent); margin-right:10px;">
                                 <option value="Procesando Pago" ${o.status_orden==='Procesando Pago'?'selected':''}>Procesando Pago</option>
@@ -1291,9 +1294,9 @@
                 
                 // Actualizar Dashboard Top
                 if(document.getElementById("statOrdenes")) {
-                    document.getElementById("statOrdenes").innerText = data.length;
-                    document.getElementById("statVentas").innerText = "$" + sumTotal.toFixed(2);
-                    document.getElementById("statTransito").innerText = sumTransito;
+                    document.getElementById("statOrdenes").innerText = data.length || 0;
+                    document.getElementById("statVentas").innerText = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(sumTotal);
+                    document.getElementById("statTransito").innerText = sumTransito || 0;
                 }
             } catch(e) { console.error(e); }
         }
@@ -1486,8 +1489,8 @@
 
         // ================= SOPORTE API =================
         async function enviarTicket() {
-            const asunto = document.getElementById("sopAsunto").value;
-            const mensaje = document.getElementById("sopMensaje").value;
+            const asunto = document.getElementById("ticketAsunto").value;
+            const mensaje = document.getElementById("ticketMensaje").value;
             const idC = localStorage.getItem("idCliente");
             if(!asunto || !mensaje || !idC) return mostrarToast("Llena asunto y mensaje.", "error");
 
@@ -1499,12 +1502,34 @@
                 });
                 if(res.ok) {
                     mostrarToast("Ticket enviado al soporte técnico", "success");
-                    document.getElementById("sopAsunto").value = "";
-                    document.getElementById("sopMensaje").value = "";
+                    document.getElementById("ticketAsunto").value = "";
+                    document.getElementById("ticketMensaje").value = "";
+                    cargarMisTickets();
                 } else {
                     mostrarToast("Error enviando ticket", "error");
                 }
             } catch(e) { console.error(e); }
+        }
+
+        async function cargarMisTickets() {
+            const idC = localStorage.getItem("idCliente");
+            if (!idC) return;
+            try {
+                const res = await fetch(`${API_URL}/mis_tickets/${idC}`);
+                if (res.ok) {
+                    const data = await res.json();
+                    let html = "";
+                    data.forEach(t => {
+                        html += `<div style="background:rgba(0,0,0,0.2); padding:10px; margin-bottom:10px; border-radius:8px;">
+                            <strong style="color:var(--accent);">#TK-${t.id_ticket} - ${t.asunto}</strong>
+                            <span style="float:right; font-size:12px; font-weight:bold; color:${t.estado === 'Resuelto' ? '#10b981' : '#f59e0b'};">${t.estado}</span>
+                            <p style="font-size:13px; margin:5px 0; color:#cbd5e1;">${t.mensaje}</p>
+                            <small style="color:#64748b;">${new Date(t.fecha_creacion).toLocaleDateString()}</small>
+                        </div>`;
+                    });
+                    document.getElementById("misTicketsList").innerHTML = html || "<p style='color:#94a3b8;'>Aún no has levantado ningún ticket.</p>";
+                }
+            } catch(e) {}
         }
 
         async function cargarSoporteAdmin() {
@@ -1876,7 +1901,7 @@
                         <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
                             <h4>Orden #00${o.id_orden}</h4>
                         </div>
-                        <span style="color:var(--success); font-weight:bold; font-size:18px;">$${o.total.toFixed(2)}</span>
+                        <span style="color:var(--success); font-weight:bold; font-size:18px;">${new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(o.total)}</span>
                         <p style="margin:5px 0 10px 0; font-size:12px; color:#94a3b8;">Fecha: ${d}</p>
                         <ul>`;
                     o.items.forEach(i => {
