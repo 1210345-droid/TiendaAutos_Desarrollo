@@ -948,7 +948,7 @@
     <!-- SCRIPTS -->
     <script>
         const globalOrigin = window.location.origin;
-        const API_URL = globalOrigin.includes('localhost') || globalOrigin.includes('127.0.0.1') ? 
+        const API_URL = globalOrigin.includes('localhost') || globalOrigin.includes('127.0.0.1') || globalOrigin.includes('file://') || globalOrigin === 'null' ? 
                         `http://localhost:8080/api` : `${globalOrigin}/api`;
 
         // Al cargar página revisamos localStorage para UX
