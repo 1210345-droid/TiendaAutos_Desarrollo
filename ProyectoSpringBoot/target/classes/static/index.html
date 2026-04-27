@@ -150,9 +150,9 @@
         .navbar a {
             color: var(--text-muted);
             text-decoration: none;
-            margin: 0 15px;
+            margin: 0 10px;
             cursor: pointer;
-            font-size: 15px;
+            font-size: 14px;
             font-weight: 500;
             transition: color 0.3s;
         }
@@ -297,8 +297,9 @@
         .search-container {
             display: flex;
             gap: 15px;
-            margin-bottom: 20px;
+            margin-bottom: 15px;
             align-items: center;
+            flex-wrap: wrap;
         }
 
         .search-container input {
@@ -469,6 +470,12 @@
             gap: 5px;
             align-items: center;
             justify-content: center;
+        }
+
+        .stars-mock {
+            color: #fbbf24;
+            font-size: 12px;
+            margin-bottom: 8px;
         }
 
         .product-card input[type="number"] {
@@ -665,10 +672,12 @@
                 <strong style="margin-right:20px; font-size: 18px;">Tienda Autopartes</strong>
                 <a id="navClientes" onclick="mostrarSeccion('clientes')">Clientes</a>
                 <a id="navLogistica" class="hidden" onclick="mostrarSeccion('logistica')">📦 Logística</a>
+                <a id="navAdminSoporte" class="hidden" onclick="mostrarSeccion('soporteAdmin')">🎧 PanelSoporte</a>
+                <a id="navOfertas" class="hidden" onclick="mostrarSeccion('ofertas')" style="color:#f59e0b;">🔥 Ofertas</a>
                 <a onclick="mostrarSeccion('productos')">Productos</a>
-                <a id="navCarrito" class="hidden" onclick="mostrarSeccion('carrito')">🛒 Carrito (<span
-                        id="cartCount">0</span>)</a>
+                <a id="navCarrito" class="hidden" onclick="mostrarSeccion('carrito')">🛒 Carrito (<span id="cartCount">0</span>)</a>
                 <a id="navPubs" class="hidden" onclick="mostrarSeccion('publicaciones')" style="color:var(--accent);">🏷️ Vender</a>
+                <a id="navSoporte" class="hidden" onclick="mostrarSeccion('soporteCliente')">🎧 Soporte</a>
                 <a id="navPerfil" class="hidden" onclick="mostrarSeccion('perfil')">👤 Mi Perfil</a>
             </div>
             <div style="flex-grow:1; max-width: 400px; display:flex; margin:0 20px;">
@@ -771,8 +780,14 @@
 
                 <div id="busquedaCliente" class="hidden">
                     <div class="search-container">
-                        <input type="text" id="buscadorDocs" placeholder="Buscar por marca, modelo o repuesto..."
-                            onkeyup="filtrarProductos()">
+                        <input type="text" id="buscadorDocs" placeholder="Buscar por marca, modelo o repuesto..." onkeyup="filtrarProductos()" style="flex:2;">
+                        <input type="number" id="filtroMin" placeholder="Precio Min ($)" onkeyup="filtrarProductos()" style="max-width:120px;">
+                        <input type="number" id="filtroMax" placeholder="Precio Max ($)" onkeyup="filtrarProductos()" style="max-width:120px;">
+                        <select id="filtroCondicion" onchange="filtrarProductos()" style="padding: 12px; border-radius: 30px; border: 1px solid var(--glass-border); background: rgba(0,0,0,0.2); color:white; font-family:'Outfit'; outline:none;">
+                            <option value="Todos">Cualquier Condición</option>
+                            <option value="Nuevo">Solo Nuevos</option>
+                            <option value="Secundario">Solo Segunda Mano</option>
+                        </select>
                     </div>
                     <div class="pills-container" id="pillsContainer">
                         <div class="pill active" onclick="setFiltroCat('Todas')">Todas</div>
@@ -1068,16 +1083,22 @@
             if (localStorage.getItem("userRol") === "admin") {
                 document.getElementById("navClientes").classList.remove("hidden");
                 document.getElementById("navLogistica").classList.remove("hidden");
+                document.getElementById("navAdminSoporte").classList.remove("hidden");
                 document.getElementById("navCarrito").classList.add("hidden");
                 document.getElementById("navPerfil").classList.add("hidden");
                 document.getElementById("navPubs").classList.add("hidden");
+                document.getElementById("navSoporte").classList.add("hidden");
+                document.getElementById("navOfertas").classList.add("hidden");
                 mostrarSeccion('clientes');
             } else {
                 document.getElementById("navClientes").classList.add("hidden");
                 document.getElementById("navLogistica").classList.add("hidden");
+                document.getElementById("navAdminSoporte").classList.add("hidden");
                 document.getElementById("navCarrito").classList.remove("hidden");
                 document.getElementById("navPerfil").classList.remove("hidden");
                 document.getElementById("navPubs").classList.remove("hidden");
+                document.getElementById("navSoporte").classList.remove("hidden");
+                document.getElementById("navOfertas").classList.remove("hidden");
                 cargarPerfilSilencioso(); // Get Client ID preemptively
                 mostrarSeccion('productos');
             }
@@ -1101,6 +1122,9 @@
             document.getElementById("seccionPerfil").classList.add("hidden");
             document.getElementById("seccionPublicaciones").classList.add("hidden");
             document.getElementById("seccionLogistica").classList.add("hidden");
+            document.getElementById("seccionSoporteCliente").classList.add("hidden");
+            document.getElementById("seccionSoporteAdmin").classList.add("hidden");
+            document.getElementById("seccionOfertas").classList.add("hidden");
 
             if (seccion === 'clientes') {
                 document.getElementById("seccionClientes").classList.remove("hidden");
@@ -1130,6 +1154,14 @@
             } else if (seccion === 'logistica') {
                 document.getElementById("seccionLogistica").classList.remove("hidden");
                 cargarLogistica();
+            } else if (seccion === 'soporteCliente') {
+                document.getElementById("seccionSoporteCliente").classList.remove("hidden");
+            } else if (seccion === 'soporteAdmin') {
+                document.getElementById("seccionSoporteAdmin").classList.remove("hidden");
+                cargarSoporteAdmin();
+            } else if (seccion === 'ofertas') {
+                document.getElementById("seccionOfertas").classList.remove("hidden");
+                renderOfertasMock();
             }
         }
 
@@ -1311,6 +1343,10 @@
             const searchEl = document.getElementById("buscadorDocs");
             const globalEl = document.getElementById("globalSearchBox");
             const q = searchEl && searchEl.value ? searchEl.value.toLowerCase() : (globalEl ? globalEl.value.toLowerCase() : "");
+            
+            const minP = document.getElementById("filtroMin")?.value ? parseFloat(document.getElementById("filtroMin").value) : 0;
+            const maxP = document.getElementById("filtroMax")?.value ? parseFloat(document.getElementById("filtroMax").value) : 9999999;
+            const fCond = document.getElementById("filtroCondicion")?.value || "Todos";
 
             data = globalProductos.filter(p => {
                 let matchCat = (!isAdmin && filtroCategoria !== 'Todas') ? (p.categoria === filtroCategoria) : true;
@@ -1319,7 +1355,14 @@
                 let safeMarca = p.marca ? p.marca.toLowerCase() : "";
                 let matchSearch = safeDesc.includes(q) || safeMarca.includes(q);
                 
-                return matchCat && matchSearch;
+                let matchPrice = (!isAdmin) ? (p.precioVenta >= minP && p.precioVenta <= maxP) : true;
+                
+                let isC2C = p.vendedor_nombre ? true : false;
+                let matchCond = true;
+                if(!isAdmin && fCond === "Nuevo" && isC2C) matchCond = false;
+                if(!isAdmin && fCond === "Secundario" && !isC2C) matchCond = false;
+
+                return matchCat && matchSearch && matchPrice && matchCond;
             });
 
             if (isAdmin) {
@@ -1368,6 +1411,8 @@
                     let safeVendedor = isC2C ? (p.vendedor_nombre + ' ' + (p.vendedor_apellido || '')).replace(/'/g, "\\'") : '';
 
                     let condTag = isC2C ? `<div style="position:absolute; top:10px; right:10px; background:#ea580c; color:white; font-size:10px; padding:2px 6px; border-radius:10px; font-weight:bold;">${safeCondicion}</div>` : '';
+                    let rStars = (Math.random() * (5.0 - 3.5) + 3.5).toFixed(1);
+                    let rReviews = Math.floor(Math.random() * 120) + 1;
 
                     gridHtml += `
                     <div class="product-card" style="cursor:pointer; position:relative;" onclick="abrirModalProd(${p.id}, '${safeDesc}', '${safeMarca}', ${priceFloat}, '${safeImg}', '${safeCondicion}', '${safeDetalles}', '${safeVendedor}')">
@@ -1375,11 +1420,92 @@
                         <img src="${safeImg}" alt="${safeDesc}">
                         <div class="marca">${safeMarca}</div>
                         <h3>${rawDesc}</h3>
+                        <div class="stars-mock">⭐⭐⭐⭐⭐ ${rStars} (${rReviews})</div>
                         <div class="precio">$${priceFloat.toFixed(2)}</div>
                     </div>`;
                 });
                 document.getElementById("gridProductos").innerHTML = gridHtml;
             }
+        }
+
+        // ================= OFERTAS MOCK =================
+        function renderOfertasMock() {
+            if(globalProductos.length === 0) return;
+            // Get slightly cheaper items for showcase
+            let sorted = [...globalProductos].filter(p => !p.vendedor_nombre).sort((a,b) => a.precioVenta - b.precioVenta).slice(0, 8);
+            let gridHtml = '';
+            sorted.forEach(p => {
+                let priceFloat = parseFloat(p.precioVenta || 0);
+                let rawDesc = p.descripcion ? p.descripcion : 'Sin nombre';
+                let safeDesc = String(rawDesc).replace(/'/g, "\\'");
+                let safeMarca = p.marca ? String(p.marca).replace(/'/g, "\\'") : 'Genérico';
+                let safeImg = p.imagen_url || 'https://via.placeholder.com/200';
+                
+                gridHtml += `
+                <div class="product-card" style="cursor:pointer; position:relative; border-color:#f59e0b;" onclick="abrirModalProd(${p.id}, '${safeDesc}', '${safeMarca}', ${priceFloat}, '${safeImg}', '', '', '')">
+                    <div style="position:absolute; top:10px; right:10px; background:#f59e0b; color:white; font-size:10px; padding:2px 6px; border-radius:10px; font-weight:bold;">Mega Oferta</div>
+                    <img src="${safeImg}">
+                    <div class="marca">${safeMarca}</div>
+                    <h3>${rawDesc}</h3>
+                    <div class="precio" style="color:#f59e0b;">$${priceFloat.toFixed(2)}</div>
+                </div>`;
+            });
+            document.getElementById("gridOfertas").innerHTML = gridHtml;
+        }
+
+        // ================= SOPORTE API =================
+        async function enviarTicket() {
+            const asunto = document.getElementById("sopAsunto").value;
+            const mensaje = document.getElementById("sopMensaje").value;
+            const idC = localStorage.getItem("idCliente");
+            if(!asunto || !mensaje || !idC) return mostrarToast("Llena asunto y mensaje.", "error");
+
+            try {
+                const res = await fetch(`${API_URL}/soporte`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ idCliente: idC, asunto, mensaje })
+                });
+                if(res.ok) {
+                    mostrarToast("Ticket enviado al soporte técnico", "success");
+                    document.getElementById("sopAsunto").value = "";
+                    document.getElementById("sopMensaje").value = "";
+                } else {
+                    mostrarToast("Error enviando ticket", "error");
+                }
+            } catch(e) { console.error(e); }
+        }
+
+        async function cargarSoporteAdmin() {
+            try {
+                const res = await fetch(`${API_URL}/admin/soporte`);
+                if(res.ok) {
+                    const data = await res.json();
+                    let html = "";
+                    data.forEach(t => {
+                        let btn = t.estado === 'Abierto' ? `<button class="btn-success" onclick="resolverSoporte(${t.id_ticket})">✔ Marcar Solucionado</button>` : `<span style="color:#10b981; font-weight:bold;">¡Resuelto!</span>`;
+                        html += `<tr>
+                            <td>#TK-${t.id_ticket}</td>
+                            <td>${t.nombre} ${t.apellido}</td>
+                            <td>${t.asunto}</td>
+                            <td style="max-width:300px; white-space:normal; font-size:12px;">${t.mensaje}</td>
+                            <td>${new Date(t.fecha_creacion).toLocaleString()}</td>
+                            <td>${btn}</td>
+                        </tr>`;
+                    });
+                    document.getElementById("tablaSoporteList").innerHTML = html;
+                }
+            } catch(e) {}
+        }
+
+        async function resolverSoporte(id) {
+            try {
+                const res = await fetch(`${API_URL}/admin/soporte/resolver/${id}`, {method:'PUT'});
+                if(res.ok) {
+                    mostrarToast("Ticket solucionado.", "success");
+                    cargarSoporteAdmin();
+                }
+            } catch(e) {}
         }
 
         function toggleModal(id, show) {
