@@ -95,8 +95,17 @@ public class ComercioController {
             List<Map<String, Object>> mRes = jdbcTemplate.queryForList("SELECT id_marca FROM marca WHERE descripcion = ?", marca);
             if (!mRes.isEmpty()) idM = (Integer) mRes.get(0).get("id_marca");
             else {
-                jdbcTemplate.update("INSERT INTO marca (descripcion) VALUES (?)", marca);
-                idM = jdbcTemplate.queryForObject("SELECT MAX(id_marca) FROM marca", Integer.class);
+                try {
+                    org.springframework.jdbc.support.KeyHolder keyHolderM = new org.springframework.jdbc.support.GeneratedKeyHolder();
+                    jdbcTemplate.update(connection -> {
+                        java.sql.PreparedStatement ps = connection.prepareStatement("INSERT INTO marca (descripcion) VALUES (?)", java.sql.Statement.RETURN_GENERATED_KEYS);
+                        ps.setString(1, marca);
+                        return ps;
+                    }, keyHolderM);
+                    if (keyHolderM.getKey() != null) idM = keyHolderM.getKey().intValue();
+                } catch(Exception e) {
+                    Map<String, Object> err = new HashMap<>(); err.put("error", "Fallo al crear marca"); return err;
+                }
             }
         }
 
@@ -104,10 +113,17 @@ public class ComercioController {
         if (prov != null && !prov.isEmpty()) {
             List<Map<String, Object>> pRes = jdbcTemplate.queryForList("SELECT id_proveedor FROM proveedores WHERE nombre = ?", prov);
             if (!pRes.isEmpty()) idP = (Integer) pRes.get(0).get("id_proveedor");
-            else {
-                jdbcTemplate.update("INSERT INTO proveedores (nombre) VALUES (?)", prov);
-                idP = jdbcTemplate.queryForObject("SELECT MAX(id_proveedor) FROM proveedores", Integer.class);
-            }
+                try {
+                    org.springframework.jdbc.support.KeyHolder keyHolderP = new org.springframework.jdbc.support.GeneratedKeyHolder();
+                    jdbcTemplate.update(connection -> {
+                        java.sql.PreparedStatement ps = connection.prepareStatement("INSERT INTO proveedores (nombre) VALUES (?)", java.sql.Statement.RETURN_GENERATED_KEYS);
+                        ps.setString(1, prov);
+                        return ps;
+                    }, keyHolderP);
+                    if (keyHolderP.getKey() != null) idP = keyHolderP.getKey().intValue();
+                } catch(Exception e) {
+                    Map<String, Object> err = new HashMap<>(); err.put("error", "Fallo al crear proveedor"); return err;
+                }
         }
 
         jdbcTemplate.update("INSERT INTO productos (descripcion, precio_venta, costo, id_marca, id_proveedor, categoria) VALUES (?, ?, ?, ?, ?, ?)", 
@@ -131,17 +147,29 @@ public class ComercioController {
             List<Map<String, Object>> mRes = jdbcTemplate.queryForList("SELECT id_marca FROM marca WHERE descripcion = ?", marca);
             if (!mRes.isEmpty()) idM = (Integer) mRes.get(0).get("id_marca");
             else {
-                jdbcTemplate.update("INSERT INTO marca (descripcion) VALUES (?)", marca);
-                idM = jdbcTemplate.queryForObject("SELECT MAX(id_marca) FROM marca", Integer.class);
+                try {
+                    org.springframework.jdbc.support.KeyHolder keyHolderM = new org.springframework.jdbc.support.GeneratedKeyHolder();
+                    jdbcTemplate.update(connection -> {
+                        java.sql.PreparedStatement ps = connection.prepareStatement("INSERT INTO marca (descripcion) VALUES (?)", java.sql.Statement.RETURN_GENERATED_KEYS);
+                        ps.setString(1, marca);
+                        return ps;
+                    }, keyHolderM);
+                    if (keyHolderM.getKey() != null) idM = keyHolderM.getKey().intValue();
+                } catch(Exception e) {}
             }
         }
         if (prov != null && !prov.isEmpty()) {
             List<Map<String, Object>> pRes = jdbcTemplate.queryForList("SELECT id_proveedor FROM proveedores WHERE nombre = ?", prov);
             if (!pRes.isEmpty()) idP = (Integer) pRes.get(0).get("id_proveedor");
-            else {
-                jdbcTemplate.update("INSERT INTO proveedores (nombre) VALUES (?)", prov);
-                idP = jdbcTemplate.queryForObject("SELECT MAX(id_proveedor) FROM proveedores", Integer.class);
-            }
+                try {
+                    org.springframework.jdbc.support.KeyHolder keyHolderP = new org.springframework.jdbc.support.GeneratedKeyHolder();
+                    jdbcTemplate.update(connection -> {
+                        java.sql.PreparedStatement ps = connection.prepareStatement("INSERT INTO proveedores (nombre) VALUES (?)", java.sql.Statement.RETURN_GENERATED_KEYS);
+                        ps.setString(1, prov);
+                        return ps;
+                    }, keyHolderP);
+                    if (keyHolderP.getKey() != null) idP = keyHolderP.getKey().intValue();
+                } catch(Exception e) {}
         }
 
         jdbcTemplate.update("UPDATE productos SET descripcion=?, precio_venta=?, costo=?, id_marca=?, id_proveedor=?, categoria=? WHERE id_producto=?", 
