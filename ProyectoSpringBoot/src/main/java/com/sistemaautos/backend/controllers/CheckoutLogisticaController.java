@@ -38,6 +38,14 @@ public class CheckoutLogisticaController {
         Object idC = body.get("idCliente");
         List<Map<String, Object>> items = (List<Map<String, Object>>) body.get("items");
 
+        Map<String, Object> res = new HashMap<>();
+
+        if (items == null || items.isEmpty()) {
+            res.put("success", false);
+            res.put("message", "El carrito está vacío");
+            return res;
+        }
+
         double total = 0;
         for (Map<String, Object> it : items) {
             double p = Double.parseDouble(it.get("precioVenta").toString());
@@ -45,21 +53,40 @@ public class CheckoutLogisticaController {
             total += (p * c);
         }
 
-        jdbcTemplate.update("INSERT INTO orden_venta (id_cliente, fecha_orden, status_orden, total_orden) VALUES (?, CURRENT_TIMESTAMP, 'Procesando Pago', ?)", 
-                            idC, total);
-        Integer idOrden = jdbcTemplate.queryForObject("SELECT SCOPE_IDENTITY()", Integer.class);
+        try {
+            org.springframework.jdbc.support.KeyHolder keyHolder = new org.springframework.jdbc.support.GeneratedKeyHolder();
+            final double finalTotal = total;
+            jdbcTemplate.update(connection -> {
+                java.sql.PreparedStatement ps = connection.prepareStatement(
+                    "INSERT INTO orden_venta (id_cliente, fecha_orden, status_orden, total_orden) VALUES (?, CURRENT_TIMESTAMP, 'Procesando Pago', ?)",
+                    java.sql.Statement.RETURN_GENERATED_KEYS);
+                ps.setObject(1, idC);
+                ps.setDouble(2, finalTotal);
+                return ps;
+            }, keyHolder);
 
-        for (Map<String, Object> it : items) {
-            double p = Double.parseDouble(it.get("precioVenta").toString());
-            int c = Integer.parseInt(it.get("cantidad").toString());
-            
-            jdbcTemplate.update("INSERT INTO detalle_orden (id_orden, id_producto, cantidad, precio_unitario, subtotal) VALUES (?, ?, ?, ?, ?)", 
-                                idOrden, it.get("id"), c, p, p * c);
+            Number newKey = keyHolder.getKey();
+            if (newKey == null) {
+                res.put("success", false);
+                res.put("message", "Error al generar la orden");
+                return res;
+            }
+            int idOrden = newKey.intValue();
+
+            for (Map<String, Object> it : items) {
+                double p = Double.parseDouble(it.get("precioVenta").toString());
+                int c = Integer.parseInt(it.get("cantidad").toString());
+                jdbcTemplate.update(
+                    "INSERT INTO detalle_orden (id_orden, id_producto, cantidad, precio_unitario, subtotal) VALUES (?, ?, ?, ?, ?)",
+                    idOrden, it.get("id"), c, p, p * c);
+            }
+
+            res.put("success", true);
+            res.put("id_orden", idOrden);
+        } catch (Exception e) {
+            res.put("success", false);
+            res.put("message", "Error en el pago: " + e.getMessage());
         }
-
-        Map<String, Object> res = new HashMap<>(); 
-        res.put("success", true);
-        res.put("id_orden", idOrden);
         return res;
     }
 

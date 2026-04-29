@@ -2,12 +2,17 @@ package com.sistemaautos.backend.controllers;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.support.GeneratedKeyHolder;
+import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.sql.PreparedStatement;
+import java.sql.Statement;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.List;
+import java.util.ArrayList;
 
 @CrossOrigin(origins = "*")
 @RestController
@@ -17,21 +22,31 @@ public class AuthController {
     @Autowired
     private JdbcTemplate jdbcTemplate;
 
+    private List<Map<String, Object>> normalizeKeys(List<Map<String, Object>> list) {
+        List<Map<String, Object>> result = new ArrayList<>();
+        for (Map<String, Object> row : list) {
+            Map<String, Object> lower = new HashMap<>();
+            row.forEach((k, v) -> lower.put(k.toLowerCase(), v));
+            result.add(lower);
+        }
+        return result;
+    }
+
     @PostMapping("/login")
     public Map<String, Object> login(@RequestBody Map<String, String> body) {
         String username = body.get("username");
         String password = body.get("password");
-        
-        List<Map<String, Object>> result = jdbcTemplate.queryForList(
-            "SELECT id, usuario, rol FROM usuarios_login WHERE usuario = ? AND clave = ?", 
+
+        List<Map<String, Object>> result = normalizeKeys(jdbcTemplate.queryForList(
+            "SELECT id, usuario, rol FROM usuarios_login WHERE usuario = ? AND clave = ?",
             username, password
-        );
+        ));
 
         Map<String, Object> res = new HashMap<>();
         if (!result.isEmpty()) {
             res.put("success", true);
             res.put("message", "Login exitoso");
-            res.put("rol", result.get(0).getOrDefault("rol", result.get(0).get("ROL")));
+            res.put("rol", result.get(0).get("rol"));
         } else {
             res.put("success", false);
             res.put("message", "Credenciales incorrectas");
@@ -44,37 +59,60 @@ public class AuthController {
     public Map<String, Object> register(@RequestBody Map<String, String> body) {
         String username = body.get("username");
         String password = body.get("password");
-        String nombre = body.get("nombre");
+        String nombre   = body.get("nombre");
         String apellido = body.get("apellido");
         String telefono = body.get("telefono");
-        
+
         Map<String, Object> res = new HashMap<>();
-        
-        Integer count = jdbcTemplate.queryForObject("SELECT COUNT(1) FROM usuarios_login WHERE usuario = ?", Integer.class, username);
+
+        Integer count = jdbcTemplate.queryForObject(
+            "SELECT COUNT(1) FROM usuarios_login WHERE usuario = ?", Integer.class, username);
         if (count != null && count > 0) {
             res.put("success", false);
             res.put("message", "Este usuario ya existe");
             return res;
         }
 
-        jdbcTemplate.update("INSERT INTO clientes (nombre, apellido, telefono) VALUES (?, ?, ?)", nombre, apellido, telefono != null ? telefono : "");
-        Integer idCliente = jdbcTemplate.queryForObject("SELECT SCOPE_IDENTITY()", Integer.class);
+        try {
+            KeyHolder kh = new GeneratedKeyHolder();
+            final String tel = (telefono != null && !telefono.isEmpty()) ? telefono : "";
+            jdbcTemplate.update(conn -> {
+                PreparedStatement ps = conn.prepareStatement(
+                    "INSERT INTO clientes (nombre, apellido, telefono) VALUES (?, ?, ?)",
+                    Statement.RETURN_GENERATED_KEYS);
+                ps.setString(1, nombre);
+                ps.setString(2, apellido);
+                ps.setString(3, tel);
+                return ps;
+            }, kh);
 
-        jdbcTemplate.update("INSERT INTO usuarios_login (usuario, clave, rol, id_cliente) VALUES (?, ?, 'cliente', ?)", username, password, idCliente);
+            Number newId = kh.getKey();
+            if (newId == null) {
+                res.put("success", false);
+                res.put("message", "Error al crear el perfil del cliente.");
+                return res;
+            }
+            jdbcTemplate.update(
+                "INSERT INTO usuarios_login (usuario, clave, rol, id_cliente) VALUES (?, ?, 'cliente', ?)",
+                username, password, newId.intValue());
 
-        res.put("success", true);
-        res.put("message", "Registro y Perfil atado de cliente fue exitoso");
+            res.put("success", true);
+            res.put("message", "Registro exitoso");
+        } catch (Exception e) {
+            res.put("success", false);
+            res.put("message", "Error interno: " + e.getMessage());
+        }
         return res;
     }
 
     @GetMapping("/perfil/{username}")
     public Map<String, Object> getPerfil(@PathVariable String username) {
-        List<Map<String, Object>> result = jdbcTemplate.queryForList(
+        List<Map<String, Object>> result = normalizeKeys(jdbcTemplate.queryForList(
             "SELECT c.id_cliente as id, c.nombre, c.apellido, c.telefono, c.direccion " +
             "FROM usuarios_login u " +
             "INNER JOIN clientes c ON u.id_cliente = c.id_cliente " +
             "WHERE u.usuario = ?", username
-        );
+        ));
         return result.isEmpty() ? new HashMap<>() : result.get(0);
     }
 }
