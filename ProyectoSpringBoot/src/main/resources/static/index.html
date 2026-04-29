@@ -1540,7 +1540,6 @@
             document.getElementById("prodCosto").value = costo || "";
             document.getElementById("prodMarca").value = marca || "";
             document.getElementById("prodProv").value = prov || "";
-            document.getElementById("prodImg").value = img || "";
             document.getElementById("prodCat").value = cat || "General";
 
             document.getElementById("btnGuardarProd").innerText = "🔄 Actualizar Producto";
@@ -1562,51 +1561,48 @@
 
         async function guardarProducto() {
             const idEdit = document.getElementById("prodIdEdit").value;
-            const payload = {
-                descripcion: document.getElementById("prodDesc").value,
-                precioVenta: parseFloat(document.getElementById("prodPrecio").value),
-                costo: parseFloat(document.getElementById("prodCosto").value) || 0,
-                marca: document.getElementById("prodMarca").value.trim(),
-                proveedor: document.getElementById("prodProv").value.trim(),
-                categoria: document.getElementById("prodCat").value
-            };
+            const descripcion = document.getElementById("prodDesc").value.trim();
+            const precio      = document.getElementById("prodPrecio").value;
+            const costo       = document.getElementById("prodCosto").value;
+            const nombreMarca = document.getElementById("prodMarca").value.trim();
+            const nombreProv  = document.getElementById("prodProv").value.trim();
+            const categoria   = document.getElementById("prodCat").value;
 
-            if (!payload.descripcion || !payload.precioVenta) {
+            if (!descripcion || !precio) {
                 alert("Descripción y precio son requeridos");
                 return;
             }
 
             const methodType = idEdit ? 'PUT' : 'POST';
-            const endpoint = idEdit ? `${API_URL}/productos/${idEdit}` : `${API_URL}/productos`;
+            const endpoint   = idEdit ? `${API_URL}/productos/${idEdit}` : `${API_URL}/productos`;
 
             try {
                 const res = await fetch(endpoint, {
                     method: methodType,
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        descripcion,
-                        precioVenta: parseFloat(precio),
-                        costo: costo ? parseFloat(costo) : 0,
-                        nombreMarca: nombreMarca.trim(),
-                        nombreProv: nombreProv.trim(),
-                        imagen_url: imagen_url.trim(),
-                        categoria: categoria
+                        descripcion:  descripcion,
+                        precioVenta:  parseFloat(precio),
+                        costo:        costo ? parseFloat(costo) : 0,
+                        nombreMarca:  nombreMarca,
+                        nombreProv:   nombreProv,
+                        categoria:    categoria || "General"
                     })
                 });
 
-                const dataJSON = await res.json();
-
                 if (!res.ok) {
-                    mostrarToast("Error en SQL: " + (dataJSON.error || "Desconocido"), "error");
+                    const dataJSON = await res.json().catch(() => ({}));
+                    mostrarToast("Error al guardar: " + (dataJSON.error || res.status), "error");
                     return;
                 }
 
-                mostrarToast("Producto guardado correctamente", "success");
+                mostrarToast("Producto guardado correctamente ✅", "success");
                 cancelarEdicion();
                 cargarProductos();
                 cargarSelects();
             } catch (e) {
-                mostrarToast("Error crítico conectando", "error");
+                mostrarToast("Error de conexión con el servidor.", "error");
+                console.error(e);
             }
         }
 
