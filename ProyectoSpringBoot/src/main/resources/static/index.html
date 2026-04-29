@@ -821,8 +821,8 @@
 
                 <!-- SECCION PUBLICACIONES C2C -->
                 <div id="seccionPublicaciones" class="hidden">
-                    <h2>Publicar Mi Producto (Segunda Mano)</h2>
-                    <div class="form-group" style="border:1px solid var(--accent);">
+                    <h2>🏷️ Vender Mi Producto (Segunda Mano)</h2>
+                    <div class="form-group" style="border:1px solid var(--accent); margin-bottom:20px;">
                         <input type="text" id="c2cDesc" placeholder="Título de lo que vendes (Ej. Llantas Rin 15)">
                         <select id="c2cEstado">
                             <option value="Nuevo">Estética: Nuevo</option>
@@ -835,6 +835,11 @@
                         <button class="btn-success" style="background:var(--accent); color:#1e293b;" onclick="subirPublicacion()">🚀 Publicar en Tienda</button>
                     </div>
                     <p style="color:#94a3b8; font-size:12px; margin-top:-10px;">* Al publicar, tu repuesto aparecerá en el catálogo general marcado como artículo de Segunda Mano bajo tu nombre de Perfil.</p>
+
+                    <h3 style="margin-top:30px; border-bottom:1px solid var(--glass-border); padding-bottom:8px;">📋 Mis Publicaciones Activas</h3>
+                    <div id="misPublicacionesBox">
+                        <p style="color:#94a3b8;">Cargando tus publicaciones...</p>
+                    </div>
                 </div>
             <!-- SECCION CARRITO -->
             <div id="seccionCarrito" class="hidden">
@@ -873,7 +878,19 @@
             </div>
             
             <div class="form-group" style="text-align:left;">
-                <label style="font-size: 13px; color:var(--accent);">Número de Tarjeta (Se autocompletará si ya compraste)</label>
+                <label style="font-size: 13px; color:var(--accent);">📦 Paquetería / Envío</label>
+                <select id="payPaqueteria" style="margin-bottom:12px;">
+                    <option value="DHL Express">🟡 DHL Express — Entrega 1-2 días</option>
+                    <option value="FedEx Estándar">🟠 FedEx Estándar — Entrega 3-5 días</option>
+                    <option value="Estafeta Nacional">🔵 Estafeta Nacional — Entrega 3-7 días</option>
+                    <option value="Correos de México">🟢 Correos de México — Entrega 5-10 días</option>
+                    <option value="Recoger en tienda">🏪 Recoger en tienda (Sin costo)</option>
+                </select>
+
+                <label style="font-size: 13px; color:var(--accent); display:block;">🏠 Dirección de Envío</label>
+                <input type="text" id="payDireccion" placeholder="Calle, Número, Colonia, Ciudad, CP" style="margin-bottom:12px;">
+
+                <label style="font-size: 13px; color:var(--accent);">Número de Tarjeta</label>
                 <input type="text" id="payTarjeta" placeholder="0000 0000 0000 0000" maxlength="19" style="margin-bottom: 15px;">
                 
                 <div style="display:flex; gap:10px;">
@@ -1136,6 +1153,7 @@
                 cargarPerfil();
             } else if (seccion === 'publicaciones') {
                 document.getElementById("seccionPublicaciones").classList.remove("hidden");
+                cargarMisPublicaciones();
             } else if (seccion === 'logistica') {
                 document.getElementById("seccionLogistica").classList.remove("hidden");
                 cargarLogistica();
@@ -1143,6 +1161,28 @@
         }
 
         /* ----- FUNCIONES PARA CLIENTES ------ */
+        async function cargarMisPublicaciones() {
+            const idC = localStorage.getItem("idCliente");
+            const box = document.getElementById("misPublicacionesBox");
+            if (!idC) { box.innerHTML = "<p style='color:#94a3b8;'>Inicia sesión para ver tus publicaciones.</p>"; return; }
+            try {
+                const res = await fetch(`${API_URL}/productos`);
+                const todos = await res.json();
+                const mios = todos.filter(p => String(p.id_vendedor) === String(idC));
+                if (mios.length === 0) {
+                    box.innerHTML = "<p style='color:#94a3b8;'>Aún no has publicado ningún producto. ¡Publica el primero arriba!</p>";
+                    return;
+                }
+                let html = '<table><thead><tr><th>ID</th><th>Descripción</th><th>Estado</th><th>Precio</th></tr></thead><tbody>';
+                mios.forEach(p => {
+                    const precio = new Intl.NumberFormat('es-MX', {style:'currency', currency:'MXN'}).format(parseFloat(p.precioVenta)||0);
+                    html += `<tr><td>#${p.id}</td><td>${p.descripcion}</td><td><span style="background:#0284c7;color:white;padding:2px 8px;border-radius:8px;font-size:11px;">${p.condicion_uso || 'Nuevo'}</span></td><td style="color:var(--success);font-weight:bold;">${precio}</td></tr>`;
+                });
+                html += '</tbody></table>';
+                box.innerHTML = html;
+            } catch(e) { box.innerHTML = "<p style='color:#ef4444;'>Error al cargar publicaciones.</p>"; }
+        }
+
         async function cargarClientes() {
             try {
                 const res = await fetch(`${API_URL}/clientes`);
@@ -1377,7 +1417,7 @@
             if (isAdmin) {
                 document.getElementById("tablaModoAdmin").classList.remove("hidden");
                 document.getElementById("gridProductos").classList.add("hidden");
-                let headersHTML = `<tr><th>ID</th><th>Imagen</th><th>Categoria</th><th>Marca</th><th>Descripción</th><th>Costo</th><th>Proveedor</th><th>Precio</th><th>Acciones</th></tr>`;
+                let headersHTML = `<tr><th>ID</th><th>Categoría</th><th>Marca</th><th>Descripción</th><th>Costo</th><th>Proveedor</th><th>Precio</th><th>Acciones</th></tr>`;
                 document.getElementById("headProductos").innerHTML = headersHTML;
                 let html = "";
                 data.forEach(p => {
