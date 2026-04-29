@@ -73,7 +73,7 @@ public class ComercioController {
     @GetMapping("/productos")
     public List<Map<String, Object>> getProductos() {
         String query = "SELECT p.id_producto as id, m.descripcion as marca, pr.nombre as proveedor, " +
-                       "p.descripcion, p.costo, p.precio_venta as precioVenta, p.categoria, " +
+                       "p.descripcion, p.costo, p.precio_venta as precioVenta, p.imagen_url, p.categoria, " +
                        "p.condicion_uso, p.detalles_producto, c.nombre as vendedor_nombre, c.apellido as vendedor_apellido " +
                        "FROM productos p LEFT JOIN marca m ON p.id_marca = m.id_marca " +
                        "LEFT JOIN proveedores pr ON p.id_proveedor = pr.id_proveedor " +
@@ -88,6 +88,7 @@ public class ComercioController {
         Object c = body.get("costo");
         String marca = (String) body.get("nombreMarca");
         String prov = (String) body.get("nombreProv");
+        String img = (String) body.get("imagen_url");
         String cat = (String) body.get("categoria");
 
         Integer idM = null;
@@ -95,17 +96,8 @@ public class ComercioController {
             List<Map<String, Object>> mRes = jdbcTemplate.queryForList("SELECT id_marca FROM marca WHERE descripcion = ?", marca);
             if (!mRes.isEmpty()) idM = (Integer) mRes.get(0).get("id_marca");
             else {
-                try {
-                    org.springframework.jdbc.support.KeyHolder keyHolderM = new org.springframework.jdbc.support.GeneratedKeyHolder();
-                    jdbcTemplate.update(connection -> {
-                        java.sql.PreparedStatement ps = connection.prepareStatement("INSERT INTO marca (descripcion) VALUES (?)", java.sql.Statement.RETURN_GENERATED_KEYS);
-                        ps.setString(1, marca);
-                        return ps;
-                    }, keyHolderM);
-                    if (keyHolderM.getKey() != null) idM = keyHolderM.getKey().intValue();
-                } catch(Exception e) {
-                    Map<String, Object> err = new HashMap<>(); err.put("error", "Fallo al crear marca"); return err;
-                }
+                jdbcTemplate.update("INSERT INTO marca (descripcion) VALUES (?)", marca);
+                idM = jdbcTemplate.queryForObject("SELECT SCOPE_IDENTITY()", Integer.class);
             }
         }
 
@@ -113,21 +105,14 @@ public class ComercioController {
         if (prov != null && !prov.isEmpty()) {
             List<Map<String, Object>> pRes = jdbcTemplate.queryForList("SELECT id_proveedor FROM proveedores WHERE nombre = ?", prov);
             if (!pRes.isEmpty()) idP = (Integer) pRes.get(0).get("id_proveedor");
-                try {
-                    org.springframework.jdbc.support.KeyHolder keyHolderP = new org.springframework.jdbc.support.GeneratedKeyHolder();
-                    jdbcTemplate.update(connection -> {
-                        java.sql.PreparedStatement ps = connection.prepareStatement("INSERT INTO proveedores (nombre) VALUES (?)", java.sql.Statement.RETURN_GENERATED_KEYS);
-                        ps.setString(1, prov);
-                        return ps;
-                    }, keyHolderP);
-                    if (keyHolderP.getKey() != null) idP = keyHolderP.getKey().intValue();
-                } catch(Exception e) {
-                    Map<String, Object> err = new HashMap<>(); err.put("error", "Fallo al crear proveedor"); return err;
-                }
+            else {
+                jdbcTemplate.update("INSERT INTO proveedores (nombre) VALUES (?)", prov);
+                idP = jdbcTemplate.queryForObject("SELECT SCOPE_IDENTITY()", Integer.class);
+            }
         }
 
-        jdbcTemplate.update("INSERT INTO productos (descripcion, precio_venta, costo, id_marca, id_proveedor, categoria) VALUES (?, ?, ?, ?, ?, ?)", 
-                            desc, pv, c != null ? c : 0, idM, idP, cat != null ? cat : "General");
+        jdbcTemplate.update("INSERT INTO productos (descripcion, precio_venta, costo, id_marca, id_proveedor, imagen_url, categoria) VALUES (?, ?, ?, ?, ?, ?, ?)", 
+                            desc, pv, c != null ? c : 0, idM, idP, img, cat != null ? cat : "General");
         
         Map<String, Object> res = new HashMap<>(); res.put("success", true); return res;
     }
@@ -139,6 +124,7 @@ public class ComercioController {
         Object c = body.get("costo");
         String marca = (String) body.get("nombreMarca");
         String prov = (String) body.get("nombreProv");
+        String img = (String) body.get("imagen_url");
         String cat = (String) body.get("categoria");
 
         Integer idM = null; Integer idP = null;
@@ -147,33 +133,21 @@ public class ComercioController {
             List<Map<String, Object>> mRes = jdbcTemplate.queryForList("SELECT id_marca FROM marca WHERE descripcion = ?", marca);
             if (!mRes.isEmpty()) idM = (Integer) mRes.get(0).get("id_marca");
             else {
-                try {
-                    org.springframework.jdbc.support.KeyHolder keyHolderM = new org.springframework.jdbc.support.GeneratedKeyHolder();
-                    jdbcTemplate.update(connection -> {
-                        java.sql.PreparedStatement ps = connection.prepareStatement("INSERT INTO marca (descripcion) VALUES (?)", java.sql.Statement.RETURN_GENERATED_KEYS);
-                        ps.setString(1, marca);
-                        return ps;
-                    }, keyHolderM);
-                    if (keyHolderM.getKey() != null) idM = keyHolderM.getKey().intValue();
-                } catch(Exception e) {}
+                jdbcTemplate.update("INSERT INTO marca (descripcion) VALUES (?)", marca);
+                idM = jdbcTemplate.queryForObject("SELECT SCOPE_IDENTITY()", Integer.class);
             }
         }
         if (prov != null && !prov.isEmpty()) {
             List<Map<String, Object>> pRes = jdbcTemplate.queryForList("SELECT id_proveedor FROM proveedores WHERE nombre = ?", prov);
             if (!pRes.isEmpty()) idP = (Integer) pRes.get(0).get("id_proveedor");
-                try {
-                    org.springframework.jdbc.support.KeyHolder keyHolderP = new org.springframework.jdbc.support.GeneratedKeyHolder();
-                    jdbcTemplate.update(connection -> {
-                        java.sql.PreparedStatement ps = connection.prepareStatement("INSERT INTO proveedores (nombre) VALUES (?)", java.sql.Statement.RETURN_GENERATED_KEYS);
-                        ps.setString(1, prov);
-                        return ps;
-                    }, keyHolderP);
-                    if (keyHolderP.getKey() != null) idP = keyHolderP.getKey().intValue();
-                } catch(Exception e) {}
+            else {
+                jdbcTemplate.update("INSERT INTO proveedores (nombre) VALUES (?)", prov);
+                idP = jdbcTemplate.queryForObject("SELECT SCOPE_IDENTITY()", Integer.class);
+            }
         }
 
-        jdbcTemplate.update("UPDATE productos SET descripcion=?, precio_venta=?, costo=?, id_marca=?, id_proveedor=?, categoria=? WHERE id_producto=?", 
-                            desc, pv, c != null ? c : 0, idM, idP, cat != null ? cat : "General", id);
+        jdbcTemplate.update("UPDATE productos SET descripcion=?, precio_venta=?, costo=?, id_marca=?, id_proveedor=?, imagen_url=?, categoria=? WHERE id_producto=?", 
+                            desc, pv, c != null ? c : 0, idM, idP, img, cat != null ? cat : "General", id);
         Map<String, Object> res = new HashMap<>(); res.put("success", true); return res;
     }
 
@@ -188,9 +162,9 @@ public class ComercioController {
     // ================= PRODUCTOS C2C =================
     @PostMapping("/mis_productos")
     public Map<String, Object> addMisProductos(@RequestBody Map<String, Object> body) {
-        jdbcTemplate.update("INSERT INTO productos (id_vendedor, descripcion, precio_venta, categoria, condicion_uso, detalles_producto) VALUES (?, ?, ?, ?, ?, ?)", 
+        jdbcTemplate.update("INSERT INTO productos (id_vendedor, descripcion, precio_venta, imagen_url, categoria, condicion_uso, detalles_producto) VALUES (?, ?, ?, ?, ?, ?, ?)", 
                             body.get("idCliente"), body.get("descripcion"), body.get("precioVenta"), 
-                            body.get("categoria"), body.get("condicion_uso"), body.get("detalles_producto"));
+                            body.get("imagen_url"), body.get("categoria"), body.get("condicion_uso"), body.get("detalles_producto"));
         Map<String, Object> res = new HashMap<>(); res.put("success", true); return res;
     }
 }

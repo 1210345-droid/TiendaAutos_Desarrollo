@@ -57,29 +57,10 @@ public class AuthController {
             return res;
         }
 
-        try {
-            org.springframework.jdbc.support.KeyHolder keyHolder = new org.springframework.jdbc.support.GeneratedKeyHolder();
-            jdbcTemplate.update(connection -> {
-                java.sql.PreparedStatement ps = connection.prepareStatement("INSERT INTO clientes (nombre, apellido, telefono) VALUES (?, ?, ?)", java.sql.Statement.RETURN_GENERATED_KEYS);
-                ps.setString(1, nombre);
-                ps.setString(2, apellido);
-                ps.setString(3, telefono != null ? telefono : "");
-                return ps;
-            }, keyHolder);
+        jdbcTemplate.update("INSERT INTO clientes (nombre, apellido, telefono) VALUES (?, ?, ?)", nombre, apellido, telefono != null ? telefono : "");
+        Integer idCliente = jdbcTemplate.queryForObject("SELECT SCOPE_IDENTITY()", Integer.class);
 
-            Number newId = keyHolder.getKey();
-            if (newId != null) {
-                jdbcTemplate.update("INSERT INTO usuarios_login (usuario, clave, rol, id_cliente) VALUES (?, ?, 'cliente', ?)", username, password, newId.intValue());
-            } else {
-                res.put("success", false);
-                res.put("message", "Error al generar el perfil del cliente.");
-                return res;
-            }
-        } catch (Exception e) {
-            res.put("success", false);
-            res.put("message", "Error interno al crear usuario: " + e.getMessage());
-            return res;
-        }
+        jdbcTemplate.update("INSERT INTO usuarios_login (usuario, clave, rol, id_cliente) VALUES (?, ?, 'cliente', ?)", username, password, idCliente);
 
         res.put("success", true);
         res.put("message", "Registro y Perfil atado de cliente fue exitoso");

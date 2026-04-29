@@ -673,7 +673,6 @@
                 <strong style="margin-right:20px; font-size: 18px;">Tienda Autopartes</strong>
                 <a id="navClientes" onclick="mostrarSeccion('clientes')">Clientes</a>
                 <a id="navLogistica" class="hidden" onclick="mostrarSeccion('logistica')">📦 Logística</a>
-                <a id="navOfertas" class="hidden" onclick="mostrarSeccion('ofertas')" style="color:#f59e0b;">🔥 Ofertas</a>
                 <a onclick="mostrarSeccion('productos')">Productos</a>
                 <a id="navCarrito" class="hidden" onclick="mostrarSeccion('carrito')">🛒 Carrito (<span id="cartCount">0</span>)</a>
                 <a id="navPubs" class="hidden" onclick="mostrarSeccion('publicaciones')" style="color:var(--accent);">🏷️ Vender</a>
@@ -695,12 +694,6 @@
                     <h2>Gestión de Clientes</h2>
                     <button class="btn-export" onclick="exportData('tablaClientesHtml', 'Clientes.csv')">📊 Exportar a Excel (CSV)</button>
                 </div>
-                <div class="form-group">
-                    <input type="text" id="cliNombre" placeholder="Nombre">
-                    <input type="text" id="cliApellido" placeholder="Apellido">
-                    <input type="text" id="cliTelefono" placeholder="Teléfono">
-                    <button class="btn-success" onclick="agregarCliente()">+ Agregar Cliente</button>
-                </div>
                 <table id="tablaClientesHtml">
                     <thead>
                         <tr>
@@ -708,7 +701,6 @@
                             <th>Nombre</th>
                             <th>Apellido</th>
                             <th>Teléfono</th>
-                            <th>Acciones</th>
                         </tr>
                     </thead>
                     <tbody id="tablaClientes"></tbody>
@@ -821,7 +813,7 @@
                     </div>
 
                     <h2 style="margin-top: 40px; border-bottom: 1px solid var(--glass-border); padding-bottom:10px;">
-                        Historial de Pedidos</h2>
+                        🚚 Mis Pedidos y Estado de Envío</h2>
                     <div id="misOrdenesBox" class="history-list">
                         <p style="color:#94a3b8;">Cargando historial...</p>
                     </div>
@@ -898,19 +890,8 @@
                 <label style="margin-top:15px; font-size: 13px; color:var(--accent); display:block;">Nombre en la tarjeta</label>
                 <input type="text" id="payName" placeholder="Juan Perez" style="margin-bottom: 20px;">
                 
-                <button class="btn-success" style="width:100%; font-size: 16px;" onclick="confirmarPago()">Confirmar y Pagar</button>
+            <button class="btn-success" style="width:100%; font-size: 16px;" onclick="confirmarPago()">Confirmar y Pagar</button>
                 <p style="text-align:center; margin-top:10px; font-size:11px; color:#64748b;">🔒 Tus finanzas están encriptadas. No guardamos caducidad ni CVV.</p>
-            </div>
-            <!-- SECCION OFERTAS -->
-            <div id="seccionOfertas" class="hidden">
-                <h2>Ofertas Destacadas del Mes ⚡</h2>
-                <div style="background: linear-gradient(135deg, #ea580c 0%, #c2410c 100%); padding:20px; border-radius:12px; margin-bottom:20px; text-align:center;">
-                    <h3 style="margin:0; font-size:24px;">¡HASTA 50% DE DESCUENTO EN FRENOS BREMBO!</h3>
-                    <p style="margin:5px 0 0 0; font-size:14px; opacity:0.9;">Aplica solo en tienda física mostrando el código promocional.</p>
-                </div>
-                <div class="grid" id="ofertasGrid">
-                    <p style="color: #94a3b8; width: 100%; text-align: center;">Las ofertas dinámicas están activadas y listas para la próxima sincronización del ERP.</p>
-                </div>
             </div>
         </div>
     </div>
@@ -1131,7 +1112,6 @@
             document.getElementById("seccionPerfil").classList.add("hidden");
             document.getElementById("seccionPublicaciones").classList.add("hidden");
             document.getElementById("seccionLogistica").classList.add("hidden");
-            document.getElementById("seccionOfertas").classList.add("hidden");
 
             if (seccion === 'clientes') {
                 document.getElementById("seccionClientes").classList.remove("hidden");
@@ -1179,7 +1159,6 @@
                         <td>${c.nombre}</td>
                         <td>${c.apellido}</td>
                         <td>${c.telefono || '-'}</td>
-                        <td><button class="btn-danger" onclick="eliminarCliente(${c.id})">Borrar</button></td>
                     </tr>`;
                 });
                 document.getElementById("tablaClientes").innerHTML = html;
@@ -1819,28 +1798,46 @@
 
                 let html = "";
                 data.forEach(o => {
-                    let d = new Date(o.fecha).toLocaleDateString();
-                    
-                    let bgStatus = o.status === 'Cancelado' ? '#ef4444' : 
-                                   o.status === 'Pedido Entregado' ? '#10b981' : '#3b82f6';
+                    let d = 'N/A';
+                    try { if (o.fecha) d = new Date(o.fecha).toLocaleDateString('es-MX', {day:'2-digit', month:'short', year:'numeric'}); } catch(e){}
 
-                    html += `<div class="history-item" style="position:relative;">
-                        <span style="position:absolute; top:10px; right:10px; background:${bgStatus}; color:white; font-size:10px; padding:3px 8px; border-radius:12px; font-weight:bold;">
-                            ${o.status || 'Procesando Pago'}
-                        </span>
-                        <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
-                            <h4>Orden #00${o.id_orden}</h4>
+                    const status = o.status || 'Procesando Pago';
+                    let bgStatus = '#64748b';
+                    let icon = '⏳';
+                    if (status === 'Cancelado') { bgStatus = '#ef4444'; icon = '❌'; }
+                    else if (status === 'Pedido Entregado') { bgStatus = '#10b981'; icon = '✅'; }
+                    else if (status === 'En Tránsito') { bgStatus = '#f59e0b'; icon = '🚚'; }
+                    else if (status === 'Procesando Pago') { bgStatus = '#3b82f6'; icon = '💳'; }
+
+                    const total = parseFloat(o.total) || 0;
+                    const totalFmt = new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(total);
+
+                    html += `<div class="history-item" style="position:relative; border-left: 4px solid ${bgStatus};">
+                        <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:10px;">
+                            <div>
+                                <h4 style="margin:0 0 4px 0;">Orden #${String(o.id_orden).padStart(4,'0')}</h4>
+                                <span style="font-size:12px; color:#94a3b8;">📅 ${d}</span>
+                            </div>
+                            <span style="background:${bgStatus}; color:white; font-size:11px; padding:4px 10px; border-radius:12px; font-weight:bold; white-space:nowrap;">${icon} ${status}</span>
                         </div>
-                        <span style="color:var(--success); font-weight:bold; font-size:18px;">${new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(o.total)}</span>
-                        <p style="margin:5px 0 10px 0; font-size:12px; color:#94a3b8;">Fecha: ${d}</p>
-                        <ul>`;
-                    o.items.forEach(i => {
-                        html += `<li>${i.qty}x ${i.desc} - $${i.price.toFixed(2)}</li>`;
-                    });
-                    html += `</ul></div>`;
+                        <div style="margin-bottom:8px;">
+                            <span style="color:var(--success); font-weight:bold; font-size:20px;">${totalFmt}</span>
+                        </div>
+                        <details style="margin-top:8px;">
+                            <summary style="cursor:pointer; font-size:13px; color:var(--accent); user-select:none;">Ver productos comprados (${o.items ? o.items.length : 0})</summary>
+                            <ul style="margin:8px 0 0 0; padding-left:20px; font-size:13px; color:#cbd5e1;">`;
+                    if (o.items && o.items.length > 0) {
+                        o.items.forEach(i => {
+                            const pFmt = new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(parseFloat(i.price)||0);
+                            html += `<li style="margin-bottom:4px;">${i.qty || 1}x <strong>${i.desc}</strong> — ${pFmt}</li>`;
+                        });
+                    } else {
+                        html += `<li style="color:#64748b;">Sin detalle disponible</li>`;
+                    }
+                    html += `</ul></details></div>`;
                 });
                 box.innerHTML = html;
-            } catch (e) { console.error(e); }
+            } catch (e) { console.error(e); document.getElementById("misOrdenesBox").innerHTML = "<p style='color:#ef4444;'>Error al cargar el historial.</p>"; }
         }
 
     </script>
