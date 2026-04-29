@@ -58,7 +58,7 @@ public class AuthController {
         }
 
         jdbcTemplate.update("INSERT INTO clientes (nombre, apellido, telefono) VALUES (?, ?, ?)", nombre, apellido, telefono != null ? telefono : "");
-        Integer idCliente = jdbcTemplate.queryForObject("SELECT SCOPE_IDENTITY()", Integer.class);
+        Integer idCliente = jdbcTemplate.queryForObject("SELECT MAX(id_cliente) FROM clientes", Integer.class);
 
         jdbcTemplate.update("INSERT INTO usuarios_login (usuario, clave, rol, id_cliente) VALUES (?, ?, 'cliente', ?)", username, password, idCliente);
 

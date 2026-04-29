@@ -1,0 +1,30 @@
+2026-04-29 16:00:32.808274-06:00 jdbc[4]: exception
+org.h2.jdbc.JdbcSQLDataException: Data conversion error converting "'undefined' (PRODUCTOS: ""ID_VENDEDOR"" INTEGER)"; SQL statement:
+INSERT INTO productos (id_vendedor, descripcion, precio_venta, imagen_url, categoria, condicion_uso, detalles_producto) VALUES (?, ?, ?, ?, ?, ?, ?) [22018-224]
+2026-04-29 16:00:35.656175-06:00 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLDataException: Data conversion error converting "'undefined' (PRODUCTOS: ""ID_VENDEDOR"" INTEGER)"; SQL statement:
+INSERT INTO productos (id_vendedor, descripcion, precio_venta, imagen_url, categoria, condicion_uso, detalles_producto) VALUES (?, ?, ?, ?, ?, ?, ?) [22018-224]
+2026-04-29 16:01:37.331516-06:00 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLDataException: Value too long for column "TELEFONO CHARACTER VARYING(20)": "'SoyHiram@mail.mexicomail' (24)"; SQL statement:
+INSERT INTO clientes (nombre, apellido, telefono) VALUES (?, ?, ?) [22001-224]
+2026-04-29 16:01:38.442498-06:00 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLDataException: Value too long for column "TELEFONO CHARACTER VARYING(20)": "'SoyHiram@mail.mexicomail' (24)"; SQL statement:
+INSERT INTO clientes (nombre, apellido, telefono) VALUES (?, ?, ?) [22001-224]
+2026-04-29 16:01:39.577566-06:00 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLDataException: Value too long for column "TELEFONO CHARACTER VARYING(20)": "'SoyHiram@mail.mexicomail' (24)"; SQL statement:
+INSERT INTO clientes (nombre, apellido, telefono) VALUES (?, ?, ?) [22001-224]
+2026-04-29 16:01:39.739967-06:00 jdbc[5]: exception
+org.h2.jdbc.JdbcSQLDataException: Value too long for column "TELEFONO CHARACTER VARYING(20)": "'SoyHiram@mail.mexicomail' (24)"; SQL statement:
+INSERT INTO clientes (nombre, apellido, telefono) VALUES (?, ?, ?) [22001-224]
+2026-04-29 16:01:39.894541-06:00 jdbc[4]: exception
+org.h2.jdbc.JdbcSQLDataException: Value too long for column "TELEFONO CHARACTER VARYING(20)": "'SoyHiram@mail.mexicomail' (24)"; SQL statement:
+INSERT INTO clientes (nombre, apellido, telefono) VALUES (?, ?, ?) [22001-224]
+2026-04-29 16:01:42.931500-06:00 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLDataException: Value too long for column "TELEFONO CHARACTER VARYING(20)": "'SoyHiram@mail.mexicomail' (24)"; SQL statement:
+INSERT INTO clientes (nombre, apellido, telefono) VALUES (?, ?, ?) [22001-224]
+2026-04-29 16:01:43.112569-06:00 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLDataException: Value too long for column "TELEFONO CHARACTER VARYING(20)": "'SoyHiram@mail.mexicomail' (24)"; SQL statement:
+INSERT INTO clientes (nombre, apellido, telefono) VALUES (?, ?, ?) [22001-224]
+2026-04-29 16:01:43.280827-06:00 jdbc[4]: exception
+org.h2.jdbc.JdbcSQLDataException: Value too long for column "TELEFONO CHARACTER VARYING(20)": "'SoyHiram@mail.mexicomail' (24)"; SQL statement:
+INSERT INTO clientes (nombre, apellido, telefono) VALUES (?, ?, ?) [22001-224]
