@@ -907,8 +907,11 @@
                 <label style="margin-top:15px; font-size: 13px; color:var(--accent); display:block;">Nombre en la tarjeta</label>
                 <input type="text" id="payName" placeholder="Juan Perez" style="margin-bottom: 20px;">
                 
-            <button class="btn-success" style="width:100%; font-size: 16px;" onclick="confirmarPago()">Confirmar y Pagar</button>
-                <p style="text-align:center; margin-top:10px; font-size:11px; color:#64748b;">🔒 Tus finanzas están encriptadas. No guardamos caducidad ni CVV.</p>
+            <div style="display:flex; gap:10px; margin-top:5px;">
+                <button class="btn-success" style="flex:1; font-size: 16px;" onclick="confirmarPago()">Confirmar y Pagar</button>
+                <button class="btn-danger" style="flex:0 0 auto; font-size: 14px; padding: 10px 18px;" onclick="toggleModal('modalPago', false); mostrarToast('Compra cancelada', 'error');">✕ Cancelar</button>
+            </div>
+            <p style="text-align:center; margin-top:10px; font-size:11px; color:#64748b;">🔒 Tus finanzas están encriptadas. No guardamos caducidad ni CVV.</p>
             </div>
         </div>
     </div>
@@ -1566,8 +1569,30 @@
                     document.getElementById("c2cDesc").value = "";
                     document.getElementById("c2cPrecio").value = "";
                     document.getElementById("c2cDetalles").value = "";
+
+                    // Mostrar notificacion con direccion del centro de distribucion
+                    const notifBox = document.getElementById("misPublicacionesBox");
+                    const notif = document.createElement("div");
+                    notif.style.cssText = "background:linear-gradient(135deg,#0f4c81,#0284c7); border-radius:12px; padding:18px; margin-bottom:18px; border-left:4px solid #38bdf8; animation: fadeIn 0.4s ease;";
+                    notif.innerHTML = `
+                        <div style="display:flex; align-items:center; gap:10px; margin-bottom:8px;">
+                            <span style="font-size:24px;">📦</span>
+                            <strong style="font-size:15px;">Envía tu producto al Centro de Distribución</strong>
+                        </div>
+                        <p style="margin:4px 0; font-size:13px; color:#bae6fd;">Tu artículo ha sido listado. Envíalo a nuestra bodega central para procesarlo:</p>
+                        <div style="background:rgba(0,0,0,0.3); border-radius:8px; padding:12px; margin-top:10px; font-size:13px; line-height:1.8;">
+                            <strong>🏗️ Tienda Autopartes — Centro Logístico MX</strong><br>
+                            📍 Av. Industria Automotriz #4521, Parque Industrial Norte<br>
+                            Col. San Bernabé, C.P. 66000, Monterrey, N.L.<br>
+                            📞 Tel: +52 (81) 8000-4521 &nbsp;&nbsp; 📧 logistica@tiendaautopartes.mx<br>
+                            ⏰ Horario: Lunes a Viernes 8:00am – 6:00pm
+                        </div>
+                        <p style="margin:8px 0 0 0; font-size:11px; color:#7dd3fc;">* Incluye tu nombre de usuario <strong>${localStorage.getItem('userName')}</strong> en el paquete para agilizar su recepción.</p>
+                    `;
+                    notifBox.prepend(notif);
+
+                    cargarMisPublicaciones();
                     cargarProductos();
-                    mostrarSeccion('productos');
                 } else {
                     mostrarToast("Error al publicar.", "error");
                 }
