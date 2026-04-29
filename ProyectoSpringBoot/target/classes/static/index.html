@@ -4,7 +4,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tienda Mínima Autopartes</title>
+    <title>Sistemas Tienda Autos</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap');
 
@@ -672,12 +673,10 @@
                 <strong style="margin-right:20px; font-size: 18px;">Tienda Autopartes</strong>
                 <a id="navClientes" onclick="mostrarSeccion('clientes')">Clientes</a>
                 <a id="navLogistica" class="hidden" onclick="mostrarSeccion('logistica')">📦 Logística</a>
-                <a id="navAdminSoporte" class="hidden" onclick="mostrarSeccion('soporteAdmin')">🎧 PanelSoporte</a>
                 <a id="navOfertas" class="hidden" onclick="mostrarSeccion('ofertas')" style="color:#f59e0b;">🔥 Ofertas</a>
                 <a onclick="mostrarSeccion('productos')">Productos</a>
                 <a id="navCarrito" class="hidden" onclick="mostrarSeccion('carrito')">🛒 Carrito (<span id="cartCount">0</span>)</a>
                 <a id="navPubs" class="hidden" onclick="mostrarSeccion('publicaciones')" style="color:var(--accent);">🏷️ Vender</a>
-                <a id="navSoporte" class="hidden" onclick="mostrarSeccion('soporteCliente')">🎧 Soporte</a>
                 <a id="navPerfil" class="hidden" onclick="mostrarSeccion('perfil')">👤 Mi Perfil</a>
             </div>
             <div style="flex-grow:1; max-width: 400px; display:flex; margin:0 20px;">
@@ -739,11 +738,14 @@
                     </div>
                 </div>
 
+                <div style="background:var(--bg-main); border:1px solid var(--glass-border); border-radius:12px; padding:20px; margin-bottom:20px; text-align:center;">
+                    <canvas id="logisticaChart" style="max-height:250px;"></canvas>
+                </div>
+
                 <table id="tablaLogisticaHtml">
                     <thead>
                         <tr>
                             <th>ID Orden</th>
-                            <th>Cliente</th>
                             <th>Fecha</th>
                             <th>Total</th>
                             <th>Fase de Envío (Tracking)</th>
@@ -770,9 +772,7 @@
                     <input type="number" id="prodCosto" placeholder="Costo" step="0.01">
                     <input type="text" id="prodMarca" placeholder="Marca (Libre o Seleccionar)" list="listMarcas">
                     <datalist id="listMarcas"></datalist>
-                    <input type="text" id="prodProv" placeholder="Proveedor" list="listProvs">
-                    <datalist id="listProvs"></datalist>
-                    <input type="text" id="prodImg" placeholder="URL Imagen (Opcional)">
+                    <input type="text" id="prodProv" placeholder="Proveedor (Opcional)">
                     <button class="btn-success" id="btnGuardarProd" onclick="guardarProducto()">+ Agregar
                         Producto</button>
                     <button class="btn-danger hidden" id="btnCancelarEdit" onclick="cancelarEdicion()">Cancelar</button>
@@ -840,7 +840,6 @@
                         </select>
                         <input type="text" id="c2cDetalles" placeholder="Describe los detalles de uso o raspones...">
                         <input type="number" id="c2cPrecio" placeholder="Tu precio de venta deseado" step="0.01">
-                        <input type="text" id="c2cImg" placeholder="URL Imagen representativa (Opcional)">
                         <button class="btn-success" style="background:var(--accent); color:#1e293b;" onclick="subirPublicacion()">🚀 Publicar en Tienda</button>
                     </div>
                     <p style="color:#94a3b8; font-size:12px; margin-top:-10px;">* Al publicar, tu repuesto aparecerá en el catálogo general marcado como artículo de Segunda Mano bajo tu nombre de Perfil.</p>
@@ -873,8 +872,13 @@
         <div class="modal-content" style="max-width: 450px;">
             <span class="close-modal" onclick="toggleModal('modalPago', false)">&times;</span>
             <div style="font-size: 40px; margin-bottom: 10px;">💳</div>
-            <h2>Pagar Orden</h2>
-            <p style="margin-bottom: 20px; font-size:14px; color:#94a3b8;">Total a cobrar: <strong style="color:var(--success); font-size:18px;">$<span id="modalPagoTotal">0.00</span></strong></p>
+            <h2>Resumen de Cobro Fiscal</h2>
+            <div style="background: rgba(0,0,0,0.3); border: 1px solid var(--glass-border); padding: 15px; border-radius: 8px; margin-bottom: 20px; text-align: right; font-size:14px; color:#cbd5e1;">
+                <p style="margin:5px 0;">Subtotal: <strong id="mSubtotal">$0.00</strong></p>
+                <p style="margin:5px 0;">IVA (16%): <strong id="mIva">$0.00</strong></p>
+                <hr style="border-color:var(--glass-border); margin:10px 0;">
+                <p style="margin:5px 0; font-size:16px;">Total Final: <strong style="color:var(--success); font-size:22px;" id="modalPagoTotal">$0.00</strong></p>
+            </div>
             
             <div class="form-group" style="text-align:left;">
                 <label style="font-size: 13px; color:var(--accent);">Número de Tarjeta (Se autocompletará si ya compraste)</label>
@@ -908,26 +912,6 @@
                     <p style="color: #94a3b8; width: 100%; text-align: center;">Las ofertas dinámicas están activadas y listas para la próxima sincronización del ERP.</p>
                 </div>
             </div>
-
-            <!-- SECCION SOPORTE CLIENTE -->
-            <div id="seccionSoporteCliente" class="hidden">
-                <h2>Soporte Técnico</h2>
-                <div class="card" style="padding: 20px;">
-                    <h3>Levantar Nuevo Ticket</h3>
-                    <input type="text" id="ticketAsunto" placeholder="Asunto del problema...">
-                    <textarea id="ticketMensaje" placeholder="Describe el problema en detalle..." style="width:100%; height:100px; margin-top:10px; background:rgba(0,0,0,0.3); color:white; padding:10px; border-radius:8px; border:1px solid var(--glass-border);"></textarea>
-                    <button class="btn-success" style="margin-top:15px;" onclick="enviarTicket()">Enviar a Soporte</button>
-                    <hr style="border-color:var(--glass-border); margin:20px 0;">
-                    <h3>Mis Tickets</h3>
-                    <div id="misTicketsList">Ningún ticket en curso.</div>
-                </div>
-            </div>
-
-            <!-- SECCION SOPORTE ADMIN -->
-            <div id="seccionSoporteAdmin" class="hidden">
-                <h2>Gestión de Soporte (Admin)</h2>
-                <div id="adminTicketsList">Cargando tickets...</div>
-            </div>
         </div>
     </div>
 
@@ -935,8 +919,6 @@
     <div id="modalProducto" class="modal-overlay" onclick="if(event.target===this) toggleModal('modalProducto', false)">
         <div class="modal-content">
             <span class="close-modal" onclick="toggleModal('modalProducto', false)">&times;</span>
-            <img id="mProdImg" src=""
-                style="width: 100%; max-height: 250px; object-fit: contain; border-radius: 8px; margin-bottom: 15px; background: rgba(0,0,0,0.2);">
             <div id="mProdCondicion" style="font-size: 11px; font-weight: bold; background: #ea580c; color: white; display: inline-block; padding: 2px 8px; border-radius: 10px; margin-bottom: 5px;" class="hidden">Usado</div>
             <div id="mProdMarca" class="marca"
                 style="font-size: 14px; color: var(--accent); text-transform: uppercase;"></div>
@@ -1114,21 +1096,17 @@
             if (localStorage.getItem("userRol") === "admin") {
                 document.getElementById("navClientes").classList.remove("hidden");
                 document.getElementById("navLogistica").classList.remove("hidden");
-                document.getElementById("navAdminSoporte").classList.remove("hidden");
                 document.getElementById("navCarrito").classList.add("hidden");
                 document.getElementById("navPerfil").classList.add("hidden");
                 document.getElementById("navPubs").classList.add("hidden");
-                document.getElementById("navSoporte").classList.add("hidden");
                 document.getElementById("navOfertas").classList.add("hidden");
                 mostrarSeccion('clientes');
             } else {
                 document.getElementById("navClientes").classList.add("hidden");
                 document.getElementById("navLogistica").classList.add("hidden");
-                document.getElementById("navAdminSoporte").classList.add("hidden");
                 document.getElementById("navCarrito").classList.remove("hidden");
                 document.getElementById("navPerfil").classList.remove("hidden");
                 document.getElementById("navPubs").classList.remove("hidden");
-                document.getElementById("navSoporte").classList.remove("hidden");
                 document.getElementById("navOfertas").classList.remove("hidden");
                 cargarPerfilSilencioso(); // Get Client ID preemptively
                 mostrarSeccion('productos');
@@ -1153,8 +1131,6 @@
             document.getElementById("seccionPerfil").classList.add("hidden");
             document.getElementById("seccionPublicaciones").classList.add("hidden");
             document.getElementById("seccionLogistica").classList.add("hidden");
-            document.getElementById("seccionSoporteCliente").classList.add("hidden");
-            document.getElementById("seccionSoporteAdmin").classList.add("hidden");
             document.getElementById("seccionOfertas").classList.add("hidden");
 
             if (seccion === 'clientes') {
@@ -1185,11 +1161,6 @@
             } else if (seccion === 'logistica') {
                 document.getElementById("seccionLogistica").classList.remove("hidden");
                 cargarLogistica();
-            } else if (seccion === 'soporteCliente') {
-                document.getElementById("seccionSoporteCliente").classList.remove("hidden");
-            } else if (seccion === 'soporteAdmin') {
-                document.getElementById("seccionSoporteAdmin").classList.remove("hidden");
-                cargarSoporteAdmin();
             } else if (seccion === 'ofertas') {
                 document.getElementById("seccionOfertas").classList.remove("hidden");
                 renderOfertasMock();
@@ -1263,15 +1234,16 @@
                 
                 data.forEach(o => {
                     let d = new Date(o.fecha_orden).toLocaleString();
-                    let t = parseFloat(o.total_orden);
+                    let t = parseFloat(o.total_orden) || 0;
                     sumTotal += t;
                     if(o.status_orden !== 'Pedido Entregado' && o.status_orden !== 'Cancelado') sumTransito++;
 
+                    let money = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(t);
+
                     html += `<tr>
                         <td>#${o.id_orden}</td>
-                        <td>${o.nombre || '-'} ${o.apellido || ''}</td>
                         <td>${d}</td>
-                        <td style="color:var(--success); font-weight:bold;">$${t.toFixed(2)}</td>
+                        <td style="color:var(--success); font-weight:bold;">${money}</td>
                         <td>
                             <select id="status_${o.id_orden}" style="padding:5px; border-radius:5px; background:#1e293b; color:var(--text-main); border:1px solid var(--accent); margin-right:10px;">
                                 <option value="Procesando Pago" ${o.status_orden==='Procesando Pago'?'selected':''}>Procesando Pago</option>
@@ -1291,10 +1263,41 @@
                 
                 // Actualizar Dashboard Top
                 if(document.getElementById("statOrdenes")) {
-                    document.getElementById("statOrdenes").innerText = data.length;
-                    document.getElementById("statVentas").innerText = "$" + sumTotal.toFixed(2);
-                    document.getElementById("statTransito").innerText = sumTransito;
+                    document.getElementById("statOrdenes").innerText = data.length || 0;
+                    document.getElementById("statVentas").innerText = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(sumTotal);
+                    document.getElementById("statTransito").innerText = sumTransito || 0;
                 }
+
+                // Generar Gráfica de Estados (Chart.js)
+                if(window.logicChart) { window.logicChart.destroy(); }
+                let estadoCounts = {};
+                data.forEach(o => {
+                    let st = o.status_orden || 'Procesando Pago';
+                    estadoCounts[st] = (estadoCounts[st] || 0) + 1;
+                });
+                const ctx = document.getElementById('logisticaChart').getContext('2d');
+                window.logicChart = new Chart(ctx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: Object.keys(estadoCounts),
+                        datasets: [{
+                            data: Object.values(estadoCounts),
+                            backgroundColor: ['#3b82f6', '#f59e0b', '#10b981', '#ef4444', '#8b5cf6', '#06b6d4'],
+                            borderWidth: 0
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'right',
+                                labels: { color: '#f8fafc' }
+                            }
+                        }
+                    }
+                });
+
             } catch(e) { console.error(e); }
         }
 
@@ -1307,7 +1310,8 @@
                     body: JSON.stringify({ status: nuevoStatus })
                 });
                 if(res.ok) {
-                    mostrarToast("Estado de correo actualizado.", "success");
+                    mostrarToast("Estado actualizado correctamente.", "success");
+                    cargarLogistica();
                 } else {
                     mostrarToast("Error al actualizar tracking.", "error");
                 }
@@ -1408,7 +1412,6 @@
 
                     let rowHtml = `<tr>
                         <td>${p.id}</td>
-                        <td><img src="${p.imagen_url || 'https://via.placeholder.com/50'}" style="width:40px;height:40px;object-fit:cover;border-radius:4px;"></td>
                         <td>${p.categoria || 'General'}</td>
                         <td>${p.marca || '-'}</td>
                         <td>${rawDesc}</td>
@@ -1446,9 +1449,9 @@
                     let rReviews = Math.floor(Math.random() * 120) + 1;
 
                     gridHtml += `
-                    <div class="product-card" style="cursor:pointer; position:relative;" onclick="abrirModalProd(${p.id}, '${safeDesc}', '${safeMarca}', ${priceFloat}, '${safeImg}', '${safeCondicion}', '${safeDetalles}', '${safeVendedor}')">
+                    <div class="product-card" style="cursor:pointer; position:relative;" onclick="abrirModalProd(${p.id}, '${safeDesc}', '${safeMarca}', ${priceFloat}, '', '${safeCondicion}', '${safeDetalles}', '${safeVendedor}')">
                         ${condTag}
-                        <img src="${safeImg}" alt="${safeDesc}">
+                        <div style="font-size:40px; text-align:center; margin:10px 0;">📦</div>
                         <div class="marca">${safeMarca}</div>
                         <h3>${rawDesc}</h3>
                         <div class="stars-mock">⭐⭐⭐⭐⭐ ${rStars} (${rReviews})</div>
@@ -1473,9 +1476,9 @@
                 let safeImg = p.imagen_url || 'https://via.placeholder.com/200';
                 
                 gridHtml += `
-                <div class="product-card" style="cursor:pointer; position:relative; border-color:#f59e0b;" onclick="abrirModalProd(${p.id}, '${safeDesc}', '${safeMarca}', ${priceFloat}, '${safeImg}', '', '', '')">
+                <div class="product-card" style="cursor:pointer; position:relative; border-color:#f59e0b;" onclick="abrirModalProd(${p.id}, '${safeDesc}', '${safeMarca}', ${priceFloat}, '', '', '', '')">
                     <div style="position:absolute; top:10px; right:10px; background:#f59e0b; color:white; font-size:10px; padding:2px 6px; border-radius:10px; font-weight:bold;">Mega Oferta</div>
-                    <img src="${safeImg}">
+                    <div style="font-size:40px; text-align:center; margin:10px 0;">📦</div>
                     <div class="marca">${safeMarca}</div>
                     <h3>${rawDesc}</h3>
                     <div class="precio" style="color:#f59e0b;">$${priceFloat.toFixed(2)}</div>
@@ -1484,60 +1487,7 @@
             document.getElementById("gridOfertas").innerHTML = gridHtml;
         }
 
-        // ================= SOPORTE API =================
-        async function enviarTicket() {
-            const asunto = document.getElementById("sopAsunto").value;
-            const mensaje = document.getElementById("sopMensaje").value;
-            const idC = localStorage.getItem("idCliente");
-            if(!asunto || !mensaje || !idC) return mostrarToast("Llena asunto y mensaje.", "error");
 
-            try {
-                const res = await fetch(`${API_URL}/soporte`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ idCliente: idC, asunto, mensaje })
-                });
-                if(res.ok) {
-                    mostrarToast("Ticket enviado al soporte técnico", "success");
-                    document.getElementById("sopAsunto").value = "";
-                    document.getElementById("sopMensaje").value = "";
-                } else {
-                    mostrarToast("Error enviando ticket", "error");
-                }
-            } catch(e) { console.error(e); }
-        }
-
-        async function cargarSoporteAdmin() {
-            try {
-                const res = await fetch(`${API_URL}/admin/soporte`);
-                if(res.ok) {
-                    const data = await res.json();
-                    let html = "";
-                    data.forEach(t => {
-                        let btn = t.estado === 'Abierto' ? `<button class="btn-success" onclick="resolverSoporte(${t.id_ticket})">✔ Marcar Solucionado</button>` : `<span style="color:#10b981; font-weight:bold;">¡Resuelto!</span>`;
-                        html += `<tr>
-                            <td>#TK-${t.id_ticket}</td>
-                            <td>${t.nombre} ${t.apellido}</td>
-                            <td>${t.asunto}</td>
-                            <td style="max-width:300px; white-space:normal; font-size:12px;">${t.mensaje}</td>
-                            <td>${new Date(t.fecha_creacion).toLocaleString()}</td>
-                            <td>${btn}</td>
-                        </tr>`;
-                    });
-                    document.getElementById("tablaSoporteList").innerHTML = html;
-                }
-            } catch(e) {}
-        }
-
-        async function resolverSoporte(id) {
-            try {
-                const res = await fetch(`${API_URL}/admin/soporte/resolver/${id}`, {method:'PUT'});
-                if(res.ok) {
-                    mostrarToast("Ticket solucionado.", "success");
-                    cargarSoporteAdmin();
-                }
-            } catch(e) {}
-        }
 
         function toggleModal(id, show) {
             const el = document.getElementById(id);
@@ -1577,7 +1527,6 @@
             const precio = document.getElementById("c2cPrecio").value;
             const condicion = document.getElementById("c2cEstado").value;
             const detalles = document.getElementById("c2cDetalles").value;
-            const img = document.getElementById("c2cImg").value;
             const idC = localStorage.getItem("idCliente");
 
             if(!desc || !precio || !idC) {
@@ -1593,7 +1542,6 @@
                         idCliente: idC,
                         descripcion: desc,
                         precioVenta: parseFloat(precio),
-                        imagen_url: img,
                         condicion_uso: condicion,
                         detalles_producto: detalles,
                         categoria: 'Segunda Mano'
@@ -1605,7 +1553,6 @@
                     document.getElementById("c2cDesc").value = "";
                     document.getElementById("c2cPrecio").value = "";
                     document.getElementById("c2cDetalles").value = "";
-                    document.getElementById("c2cImg").value = "";
                     cargarProductos();
                     mostrarSeccion('productos');
                 } else {
@@ -1635,7 +1582,6 @@
             document.getElementById("prodCosto").value = "";
             document.getElementById("prodMarca").value = "";
             document.getElementById("prodProv").value = "";
-            document.getElementById("prodImg").value = "";
 
             document.getElementById("btnGuardarProd").innerText = "+ Agregar Producto";
             document.getElementById("btnCancelarEdit").classList.add("hidden");
@@ -1643,15 +1589,16 @@
 
         async function guardarProducto() {
             const idEdit = document.getElementById("prodIdEdit").value;
-            const descripcion = document.getElementById("prodDesc").value;
-            const precio = document.getElementById("prodPrecio").value;
-            const costo = document.getElementById("prodCosto").value;
-            const nombreMarca = document.getElementById("prodMarca").value;
-            const nombreProv = document.getElementById("prodProv").value;
-            const imagen_url = document.getElementById("prodImg").value;
-            const categoria = document.getElementById("prodCat").value;
+            const payload = {
+                descripcion: document.getElementById("prodDesc").value,
+                precioVenta: parseFloat(document.getElementById("prodPrecio").value),
+                costo: parseFloat(document.getElementById("prodCosto").value) || 0,
+                marca: document.getElementById("prodMarca").value.trim(),
+                proveedor: document.getElementById("prodProv").value.trim(),
+                categoria: document.getElementById("prodCat").value
+            };
 
-            if (!descripcion || !precio) {
+            if (!payload.descripcion || !payload.precioVenta) {
                 alert("Descripción y precio son requeridos");
                 return;
             }
@@ -1748,11 +1695,19 @@
         }
 
         function iniciarPagoCarrito() {
-            if (carrito.length === 0) return alert("Tu carrito está vacío");
+            if (carrito.length === 0) return mostrarToast("Carga productos primero", "error");
             
-            document.getElementById("modalPagoTotal").innerText = document.getElementById("cartTotal").innerText;
+            let totalTxt = document.getElementById("cartTotal").innerText.replace(/[^0-9.-]+/g, "");
+            let total = parseFloat(totalTxt) || 0;
+            let subtotal = total / 1.16;
+            let iva = total - subtotal;
             
-            // Auto re-llenar el número de tarjeta si existe, pero NADA más.
+            const fmt = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' });
+            document.getElementById("mSubtotal").innerText = fmt.format(subtotal);
+            document.getElementById("mIva").innerText = fmt.format(iva);
+            document.getElementById("modalPagoTotal").innerText = fmt.format(total);
+            
+            // Limpiar datos
             const savedCard = localStorage.getItem("savedCard");
             document.getElementById("payTarjeta").value = savedCard || "";
             document.getElementById("payExp").value = "";
@@ -1876,7 +1831,7 @@
                         <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
                             <h4>Orden #00${o.id_orden}</h4>
                         </div>
-                        <span style="color:var(--success); font-weight:bold; font-size:18px;">$${o.total.toFixed(2)}</span>
+                        <span style="color:var(--success); font-weight:bold; font-size:18px;">${new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(o.total)}</span>
                         <p style="margin:5px 0 10px 0; font-size:12px; color:#94a3b8;">Fecha: ${d}</p>
                         <ul>`;
                     o.items.forEach(i => {

@@ -673,12 +673,10 @@
                 <strong style="margin-right:20px; font-size: 18px;">Tienda Autopartes</strong>
                 <a id="navClientes" onclick="mostrarSeccion('clientes')">Clientes</a>
                 <a id="navLogistica" class="hidden" onclick="mostrarSeccion('logistica')">📦 Logística</a>
-                <a id="navAdminSoporte" class="hidden" onclick="mostrarSeccion('soporteAdmin')">🎧 PanelSoporte</a>
                 <a id="navOfertas" class="hidden" onclick="mostrarSeccion('ofertas')" style="color:#f59e0b;">🔥 Ofertas</a>
                 <a onclick="mostrarSeccion('productos')">Productos</a>
                 <a id="navCarrito" class="hidden" onclick="mostrarSeccion('carrito')">🛒 Carrito (<span id="cartCount">0</span>)</a>
                 <a id="navPubs" class="hidden" onclick="mostrarSeccion('publicaciones')" style="color:var(--accent);">🏷️ Vender</a>
-                <a id="navSoporte" class="hidden" onclick="mostrarSeccion('soporteCliente')">🎧 Soporte</a>
                 <a id="navPerfil" class="hidden" onclick="mostrarSeccion('perfil')">👤 Mi Perfil</a>
             </div>
             <div style="flex-grow:1; max-width: 400px; display:flex; margin:0 20px;">
@@ -748,7 +746,6 @@
                     <thead>
                         <tr>
                             <th>ID Orden</th>
-                            <th>Cliente</th>
                             <th>Fecha</th>
                             <th>Total</th>
                             <th>Fase de Envío (Tracking)</th>
@@ -775,9 +772,7 @@
                     <input type="number" id="prodCosto" placeholder="Costo" step="0.01">
                     <input type="text" id="prodMarca" placeholder="Marca (Libre o Seleccionar)" list="listMarcas">
                     <datalist id="listMarcas"></datalist>
-                    <input type="text" id="prodProv" placeholder="Proveedor" list="listProvs">
-                    <datalist id="listProvs"></datalist>
-                    <input type="text" id="prodImg" placeholder="URL Imagen (Opcional)">
+                    <input type="text" id="prodProv" placeholder="Proveedor (Opcional)">
                     <button class="btn-success" id="btnGuardarProd" onclick="guardarProducto()">+ Agregar
                         Producto</button>
                     <button class="btn-danger hidden" id="btnCancelarEdit" onclick="cancelarEdicion()">Cancelar</button>
@@ -845,7 +840,6 @@
                         </select>
                         <input type="text" id="c2cDetalles" placeholder="Describe los detalles de uso o raspones...">
                         <input type="number" id="c2cPrecio" placeholder="Tu precio de venta deseado" step="0.01">
-                        <input type="text" id="c2cImg" placeholder="URL Imagen representativa (Opcional)">
                         <button class="btn-success" style="background:var(--accent); color:#1e293b;" onclick="subirPublicacion()">🚀 Publicar en Tienda</button>
                     </div>
                     <p style="color:#94a3b8; font-size:12px; margin-top:-10px;">* Al publicar, tu repuesto aparecerá en el catálogo general marcado como artículo de Segunda Mano bajo tu nombre de Perfil.</p>
@@ -918,26 +912,6 @@
                     <p style="color: #94a3b8; width: 100%; text-align: center;">Las ofertas dinámicas están activadas y listas para la próxima sincronización del ERP.</p>
                 </div>
             </div>
-
-            <!-- SECCION SOPORTE CLIENTE -->
-            <div id="seccionSoporteCliente" class="hidden">
-                <h2>Soporte Técnico</h2>
-                <div class="card" style="padding: 20px;">
-                    <h3>Levantar Nuevo Ticket</h3>
-                    <input type="text" id="ticketAsunto" placeholder="Asunto del problema...">
-                    <textarea id="ticketMensaje" placeholder="Describe el problema en detalle..." style="width:100%; height:100px; margin-top:10px; background:rgba(0,0,0,0.3); color:white; padding:10px; border-radius:8px; border:1px solid var(--glass-border);"></textarea>
-                    <button class="btn-success" style="margin-top:15px;" onclick="enviarTicket()">Enviar a Soporte</button>
-                    <hr style="border-color:var(--glass-border); margin:20px 0;">
-                    <h3>Mis Tickets</h3>
-                    <div id="misTicketsList">Ningún ticket en curso.</div>
-                </div>
-            </div>
-
-            <!-- SECCION SOPORTE ADMIN -->
-            <div id="seccionSoporteAdmin" class="hidden">
-                <h2>Gestión de Soporte (Admin)</h2>
-                <div id="adminTicketsList">Cargando tickets...</div>
-            </div>
         </div>
     </div>
 
@@ -945,8 +919,6 @@
     <div id="modalProducto" class="modal-overlay" onclick="if(event.target===this) toggleModal('modalProducto', false)">
         <div class="modal-content">
             <span class="close-modal" onclick="toggleModal('modalProducto', false)">&times;</span>
-            <img id="mProdImg" src=""
-                style="width: 100%; max-height: 250px; object-fit: contain; border-radius: 8px; margin-bottom: 15px; background: rgba(0,0,0,0.2);">
             <div id="mProdCondicion" style="font-size: 11px; font-weight: bold; background: #ea580c; color: white; display: inline-block; padding: 2px 8px; border-radius: 10px; margin-bottom: 5px;" class="hidden">Usado</div>
             <div id="mProdMarca" class="marca"
                 style="font-size: 14px; color: var(--accent); text-transform: uppercase;"></div>
@@ -1124,21 +1096,17 @@
             if (localStorage.getItem("userRol") === "admin") {
                 document.getElementById("navClientes").classList.remove("hidden");
                 document.getElementById("navLogistica").classList.remove("hidden");
-                document.getElementById("navAdminSoporte").classList.remove("hidden");
                 document.getElementById("navCarrito").classList.add("hidden");
                 document.getElementById("navPerfil").classList.add("hidden");
                 document.getElementById("navPubs").classList.add("hidden");
-                document.getElementById("navSoporte").classList.add("hidden");
                 document.getElementById("navOfertas").classList.add("hidden");
                 mostrarSeccion('clientes');
             } else {
                 document.getElementById("navClientes").classList.add("hidden");
                 document.getElementById("navLogistica").classList.add("hidden");
-                document.getElementById("navAdminSoporte").classList.add("hidden");
                 document.getElementById("navCarrito").classList.remove("hidden");
                 document.getElementById("navPerfil").classList.remove("hidden");
                 document.getElementById("navPubs").classList.remove("hidden");
-                document.getElementById("navSoporte").classList.remove("hidden");
                 document.getElementById("navOfertas").classList.remove("hidden");
                 cargarPerfilSilencioso(); // Get Client ID preemptively
                 mostrarSeccion('productos');
@@ -1163,8 +1131,6 @@
             document.getElementById("seccionPerfil").classList.add("hidden");
             document.getElementById("seccionPublicaciones").classList.add("hidden");
             document.getElementById("seccionLogistica").classList.add("hidden");
-            document.getElementById("seccionSoporteCliente").classList.add("hidden");
-            document.getElementById("seccionSoporteAdmin").classList.add("hidden");
             document.getElementById("seccionOfertas").classList.add("hidden");
 
             if (seccion === 'clientes') {
@@ -1195,12 +1161,6 @@
             } else if (seccion === 'logistica') {
                 document.getElementById("seccionLogistica").classList.remove("hidden");
                 cargarLogistica();
-            } else if (seccion === 'soporteCliente') {
-                document.getElementById("seccionSoporteCliente").classList.remove("hidden");
-                cargarMisTickets();
-            } else if (seccion === 'soporteAdmin') {
-                document.getElementById("seccionSoporteAdmin").classList.remove("hidden");
-                cargarSoporteAdmin();
             } else if (seccion === 'ofertas') {
                 document.getElementById("seccionOfertas").classList.remove("hidden");
                 renderOfertasMock();
@@ -1282,7 +1242,6 @@
 
                     html += `<tr>
                         <td>#${o.id_orden}</td>
-                        <td>${o.nombre || '-'} ${o.apellido || ''}</td>
                         <td>${d}</td>
                         <td style="color:var(--success); font-weight:bold;">${money}</td>
                         <td>
@@ -1453,7 +1412,6 @@
 
                     let rowHtml = `<tr>
                         <td>${p.id}</td>
-                        <td><img src="${p.imagen_url || 'https://via.placeholder.com/50'}" style="width:40px;height:40px;object-fit:cover;border-radius:4px;"></td>
                         <td>${p.categoria || 'General'}</td>
                         <td>${p.marca || '-'}</td>
                         <td>${rawDesc}</td>
@@ -1491,9 +1449,9 @@
                     let rReviews = Math.floor(Math.random() * 120) + 1;
 
                     gridHtml += `
-                    <div class="product-card" style="cursor:pointer; position:relative;" onclick="abrirModalProd(${p.id}, '${safeDesc}', '${safeMarca}', ${priceFloat}, '${safeImg}', '${safeCondicion}', '${safeDetalles}', '${safeVendedor}')">
+                    <div class="product-card" style="cursor:pointer; position:relative;" onclick="abrirModalProd(${p.id}, '${safeDesc}', '${safeMarca}', ${priceFloat}, '', '${safeCondicion}', '${safeDetalles}', '${safeVendedor}')">
                         ${condTag}
-                        <img src="${safeImg}" alt="${safeDesc}">
+                        <div style="font-size:40px; text-align:center; margin:10px 0;">📦</div>
                         <div class="marca">${safeMarca}</div>
                         <h3>${rawDesc}</h3>
                         <div class="stars-mock">⭐⭐⭐⭐⭐ ${rStars} (${rReviews})</div>
@@ -1518,9 +1476,9 @@
                 let safeImg = p.imagen_url || 'https://via.placeholder.com/200';
                 
                 gridHtml += `
-                <div class="product-card" style="cursor:pointer; position:relative; border-color:#f59e0b;" onclick="abrirModalProd(${p.id}, '${safeDesc}', '${safeMarca}', ${priceFloat}, '${safeImg}', '', '', '')">
+                <div class="product-card" style="cursor:pointer; position:relative; border-color:#f59e0b;" onclick="abrirModalProd(${p.id}, '${safeDesc}', '${safeMarca}', ${priceFloat}, '', '', '', '')">
                     <div style="position:absolute; top:10px; right:10px; background:#f59e0b; color:white; font-size:10px; padding:2px 6px; border-radius:10px; font-weight:bold;">Mega Oferta</div>
-                    <img src="${safeImg}">
+                    <div style="font-size:40px; text-align:center; margin:10px 0;">📦</div>
                     <div class="marca">${safeMarca}</div>
                     <h3>${rawDesc}</h3>
                     <div class="precio" style="color:#f59e0b;">$${priceFloat.toFixed(2)}</div>
@@ -1529,82 +1487,7 @@
             document.getElementById("gridOfertas").innerHTML = gridHtml;
         }
 
-        // ================= SOPORTE API =================
-        async function enviarTicket() {
-            const asunto = document.getElementById("ticketAsunto").value;
-            const mensaje = document.getElementById("ticketMensaje").value;
-            const idC = localStorage.getItem("idCliente");
-            if(!asunto || !mensaje || !idC) return mostrarToast("Llena asunto y mensaje.", "error");
 
-            try {
-                const res = await fetch(`${API_URL}/soporte`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ idCliente: idC, asunto, mensaje })
-                });
-                if(res.ok) {
-                    mostrarToast("Ticket enviado al soporte técnico", "success");
-                    document.getElementById("ticketAsunto").value = "";
-                    document.getElementById("ticketMensaje").value = "";
-                    cargarMisTickets();
-                } else {
-                    mostrarToast("Error enviando ticket", "error");
-                }
-            } catch(e) { console.error(e); }
-        }
-
-        async function cargarMisTickets() {
-            const idC = localStorage.getItem("idCliente");
-            if (!idC) return;
-            try {
-                const res = await fetch(`${API_URL}/mis_tickets/${idC}`);
-                if (res.ok) {
-                    const data = await res.json();
-                    let html = "";
-                    data.forEach(t => {
-                        html += `<div style="background:rgba(0,0,0,0.2); padding:10px; margin-bottom:10px; border-radius:8px;">
-                            <strong style="color:var(--accent);">#TK-${t.id_ticket} - ${t.asunto}</strong>
-                            <span style="float:right; font-size:12px; font-weight:bold; color:${t.estado === 'Resuelto' ? '#10b981' : '#f59e0b'};">${t.estado}</span>
-                            <p style="font-size:13px; margin:5px 0; color:#cbd5e1;">${t.mensaje}</p>
-                            <small style="color:#64748b;">${new Date(t.fecha_creacion).toLocaleDateString()}</small>
-                        </div>`;
-                    });
-                    document.getElementById("misTicketsList").innerHTML = html || "<p style='color:#94a3b8;'>Aún no has levantado ningún ticket.</p>";
-                }
-            } catch(e) {}
-        }
-
-        async function cargarSoporteAdmin() {
-            try {
-                const res = await fetch(`${API_URL}/admin/soporte`);
-                if(res.ok) {
-                    const data = await res.json();
-                    let html = "";
-                    data.forEach(t => {
-                        let btn = t.estado === 'Abierto' ? `<button class="btn-success" onclick="resolverSoporte(${t.id_ticket})">✔ Marcar Solucionado</button>` : `<span style="color:#10b981; font-weight:bold;">¡Resuelto!</span>`;
-                        html += `<tr>
-                            <td>#TK-${t.id_ticket}</td>
-                            <td>${t.nombre} ${t.apellido}</td>
-                            <td>${t.asunto}</td>
-                            <td style="max-width:300px; white-space:normal; font-size:12px;">${t.mensaje}</td>
-                            <td>${new Date(t.fecha_creacion).toLocaleString()}</td>
-                            <td>${btn}</td>
-                        </tr>`;
-                    });
-                    document.getElementById("tablaSoporteList").innerHTML = html;
-                }
-            } catch(e) {}
-        }
-
-        async function resolverSoporte(id) {
-            try {
-                const res = await fetch(`${API_URL}/admin/soporte/resolver/${id}`, {method:'PUT'});
-                if(res.ok) {
-                    mostrarToast("Ticket solucionado.", "success");
-                    cargarSoporteAdmin();
-                }
-            } catch(e) {}
-        }
 
         function toggleModal(id, show) {
             const el = document.getElementById(id);
@@ -1644,7 +1527,6 @@
             const precio = document.getElementById("c2cPrecio").value;
             const condicion = document.getElementById("c2cEstado").value;
             const detalles = document.getElementById("c2cDetalles").value;
-            const img = document.getElementById("c2cImg").value;
             const idC = localStorage.getItem("idCliente");
 
             if(!desc || !precio || !idC) {
@@ -1660,7 +1542,6 @@
                         idCliente: idC,
                         descripcion: desc,
                         precioVenta: parseFloat(precio),
-                        imagen_url: img,
                         condicion_uso: condicion,
                         detalles_producto: detalles,
                         categoria: 'Segunda Mano'
@@ -1672,7 +1553,6 @@
                     document.getElementById("c2cDesc").value = "";
                     document.getElementById("c2cPrecio").value = "";
                     document.getElementById("c2cDetalles").value = "";
-                    document.getElementById("c2cImg").value = "";
                     cargarProductos();
                     mostrarSeccion('productos');
                 } else {
@@ -1702,7 +1582,6 @@
             document.getElementById("prodCosto").value = "";
             document.getElementById("prodMarca").value = "";
             document.getElementById("prodProv").value = "";
-            document.getElementById("prodImg").value = "";
 
             document.getElementById("btnGuardarProd").innerText = "+ Agregar Producto";
             document.getElementById("btnCancelarEdit").classList.add("hidden");
@@ -1710,15 +1589,16 @@
 
         async function guardarProducto() {
             const idEdit = document.getElementById("prodIdEdit").value;
-            const descripcion = document.getElementById("prodDesc").value;
-            const precio = document.getElementById("prodPrecio").value;
-            const costo = document.getElementById("prodCosto").value;
-            const nombreMarca = document.getElementById("prodMarca").value;
-            const nombreProv = document.getElementById("prodProv").value;
-            const imagen_url = document.getElementById("prodImg").value;
-            const categoria = document.getElementById("prodCat").value;
+            const payload = {
+                descripcion: document.getElementById("prodDesc").value,
+                precioVenta: parseFloat(document.getElementById("prodPrecio").value),
+                costo: parseFloat(document.getElementById("prodCosto").value) || 0,
+                marca: document.getElementById("prodMarca").value.trim(),
+                proveedor: document.getElementById("prodProv").value.trim(),
+                categoria: document.getElementById("prodCat").value
+            };
 
-            if (!descripcion || !precio) {
+            if (!payload.descripcion || !payload.precioVenta) {
                 alert("Descripción y precio son requeridos");
                 return;
             }

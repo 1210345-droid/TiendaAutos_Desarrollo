@@ -99,8 +99,8 @@ public class CheckoutLogisticaController {
     @GetMapping("/admin/ordenes")
     public List<Map<String, Object>> getTodasOrdenes() {
         return normalizeKeys(jdbcTemplate.queryForList(
-            "SELECT o.id_orden, o.id_cliente, o.total_orden, o.status_orden, o.fecha_orden, c.nombre, c.apellido " +
-            "FROM orden_venta o LEFT JOIN clientes c ON o.id_cliente = c.id_cliente ORDER BY o.fecha_orden DESC"
+            "SELECT id_orden, total_orden, status_orden, fecha_orden " +
+            "FROM orden_venta ORDER BY fecha_orden DESC"
         ));
     }
 

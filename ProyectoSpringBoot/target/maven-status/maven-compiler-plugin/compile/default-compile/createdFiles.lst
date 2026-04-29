@@ -1,5 +1,4 @@
 com\sistemaautos\backend\Aplicacion.class
-com\sistemaautos\backend\controllers\SoporteController.class
 com\sistemaautos\backend\controllers\AuthController.class
 com\sistemaautos\backend\controllers\CheckoutLogisticaController.class
 com\sistemaautos\backend\controllers\ComercioController.class
