@@ -1080,7 +1080,6 @@
                 document.getElementById("navCarrito").classList.add("hidden");
                 document.getElementById("navPerfil").classList.add("hidden");
                 document.getElementById("navPubs").classList.add("hidden");
-                document.getElementById("navOfertas").classList.add("hidden");
                 mostrarSeccion('clientes');
             } else {
                 document.getElementById("navClientes").classList.add("hidden");
@@ -1088,8 +1087,7 @@
                 document.getElementById("navCarrito").classList.remove("hidden");
                 document.getElementById("navPerfil").classList.remove("hidden");
                 document.getElementById("navPubs").classList.remove("hidden");
-                document.getElementById("navOfertas").classList.remove("hidden");
-                cargarPerfilSilencioso(); // Get Client ID preemptively
+                cargarPerfilSilencioso();
                 mostrarSeccion('productos');
             }
         }
@@ -1141,9 +1139,6 @@
             } else if (seccion === 'logistica') {
                 document.getElementById("seccionLogistica").classList.remove("hidden");
                 cargarLogistica();
-            } else if (seccion === 'ofertas') {
-                document.getElementById("seccionOfertas").classList.remove("hidden");
-                renderOfertasMock();
             }
         }
 
